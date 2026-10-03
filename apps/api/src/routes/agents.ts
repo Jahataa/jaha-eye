@@ -1,6 +1,11 @@
 import type { FastifyPluginAsync } from "fastify";
 import { prisma } from "@jaha-eye/database";
-import { CreateAgentSchema, StartRunSchema, UpdateAgentSchema } from "@jaha-eye/shared";
+import {
+  CreateAgentSchema,
+  getRolePresets,
+  StartRunSchema,
+  UpdateAgentSchema,
+} from "@jaha-eye/shared";
 import { getBuiltinToolCatalog } from "@jaha-eye/agent-core";
 import { mapAgent } from "../lib/mappers.js";
 import { startRun } from "../services/run-service.js";
@@ -12,6 +17,8 @@ export const agentRoutes: FastifyPluginAsync = async (app) => {
   });
 
   app.get("/api/tools", async () => getBuiltinToolCatalog());
+
+  app.get("/api/role-presets", async () => getRolePresets());
 
   app.get<{ Params: { id: string } }>("/api/agents/:id", async (req, reply) => {
     const agent = await prisma.agent.findUnique({ where: { id: req.params.id } });

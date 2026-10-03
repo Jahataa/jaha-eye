@@ -15,6 +15,7 @@ export const AgentDefinitionSchema = z.object({
   modelTemperature: z.number().min(0).max(2).default(0.7),
   systemPrompt: z.string().default("You are a helpful assistant."),
   tools: z.array(z.string()).default([]),
+  defaultRunInput: z.string().nullable(),
   maxConcurrentRuns: z.number().int().positive().default(1),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
@@ -32,6 +33,7 @@ export const CreateAgentSchema = z.object({
   modelTemperature: z.number().min(0).max(2).default(0.7),
   systemPrompt: z.string().default("You are a helpful assistant."),
   tools: z.array(z.string()).default([]),
+  defaultRunInput: z.string().optional().nullable(),
   maxConcurrentRuns: z.number().int().positive().default(1),
 });
 

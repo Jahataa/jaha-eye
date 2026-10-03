@@ -40,4 +40,16 @@ describe("normalizeAgUiEvent", () => {
 
     expect(summarizeActivity(event)).toBe("Calling tool current_time…");
   });
+
+  it("summarizes activity for web_fetch tool calls", () => {
+    const event = normalizeAgUiEvent({
+      type: "TOOL_CALL_START",
+      timestamp: Date.now(),
+      toolCallId: "tc-2",
+      toolCallName: "web_fetch",
+      parentMessageId: "msg-2",
+    });
+
+    expect(summarizeActivity(event)).toBe("Calling tool web_fetch…");
+  });
 });

@@ -17,14 +17,16 @@
 - Manual run start/stop
 - Live AG-UI SSE timeline
 - Event persistence to Postgres
-- One built-in tool (current time)
+- Six built-in tools (current_time, calculator, sleep, notebook, http_request, web_fetch)
+- Role presets (General, Researcher, API operator, Planner)
 - OpenAI-compatible default model provider
 
 ## Out of scope (later phases)
 
 - Redis, BullMQ, separate worker
 - Cron schedules, retries, concurrency limits
-- Agent versioning, approvals, MCP tool picker
+- Agent versioning, approvals, MCP tool picker (Slice D)
+- HITL / run resume (Slice C)
 - OpenTelemetry, Langfuse
 - Parent/child run graph UI
 - Local host runner (filesystem, shell)

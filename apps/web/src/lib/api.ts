@@ -4,6 +4,7 @@ import type {
   BuiltinTool,
   CreateAgentInput,
   PersistedAgentEvent,
+  RolePreset,
   UpdateAgentInput,
 } from "@jaha-eye/shared";
 
@@ -42,4 +43,5 @@ export const api = {
   getRunEvents: (id: string) => request<PersistedAgentEvent[]>(`/api/runs/${id}/events`),
   cancelRun: (id: string) => request<AgentRun>(`/api/runs/${id}/cancel`, { method: "POST" }),
   getTools: () => request<BuiltinTool[]>("/api/tools"),
+  getRolePresets: () => request<RolePreset[]>("/api/role-presets"),
 };

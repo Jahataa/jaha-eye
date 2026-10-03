@@ -14,6 +14,7 @@ export function mapAgent(agent: Agent): AgentDefinition {
     modelTemperature: agent.modelTemperature,
     systemPrompt: agent.systemPrompt,
     tools: Array.isArray(agent.tools) ? (agent.tools as string[]) : [],
+    defaultRunInput: agent.defaultRunInput,
     maxConcurrentRuns: agent.maxConcurrentRuns,
     createdAt: agent.createdAt,
     updatedAt: agent.updatedAt,

@@ -4,8 +4,8 @@
 |-------|--------|---------|
 | `/` | Dashboard | Counts (running, completed/failed today), active runs list |
 | `/agents` | Agent registry | List agents; Run, Edit, Disable, Delete actions |
-| `/agents/new` | New agent | Create agent form |
-| `/agents/:id` | Agent editor | Edit name, description, model, prompt, tools; Save, Run |
+| `/agents/new` | New agent | Template picker, create agent form |
+| `/agents/:id` | Agent editor | Edit name, description, model provider, prompt, grouped tools, default run input, max concurrent runs; Save, Run |
 | `/runs` | Run history | Table of all runs with status, agent, duration |
 | `/runs/:id` | Run detail | Status, input, output, stop button, execution timeline |
 

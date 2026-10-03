@@ -1,13 +1,34 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
+import type { BuiltinTool, RolePreset } from "@jaha-eye/shared";
 import { api } from "../../lib/api";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { Textarea } from "../../components/ui/textarea";
-import { Checkbox } from "../../components/ui/checkbox";
 import { Card } from "../../components/ui/card";
+import { ToolCard } from "../../components/tools/ToolCard";
+
+const BLANK_DEFAULTS = {
+  name: "",
+  slug: "",
+  description: "",
+  modelName: "gpt-4o-mini",
+  modelBaseUrl: "",
+  modelTemperature: "0.7",
+  modelProvider: "openai",
+  systemPrompt: "You are a helpful assistant.",
+  selectedTools: [] as string[],
+  defaultRunInput: "",
+  maxConcurrentRuns: "1",
+};
+
+function groupTools(tools: BuiltinTool[]) {
+  const safe = tools.filter((t) => t.risk === "safe");
+  const network = tools.filter((t) => t.risk === "network");
+  return { safe, network };
+}
 
 export function AgentEditorPage() {
   const { id } = useParams();
@@ -22,16 +43,24 @@ export function AgentEditorPage() {
   });
 
   const { data: tools = [] } = useQuery({ queryKey: ["tools"], queryFn: api.getTools });
+  const { data: rolePresets = [] } = useQuery({
+    queryKey: ["role-presets"],
+    queryFn: api.getRolePresets,
+    enabled: isNew,
+  });
 
-  const [name, setName] = useState("");
-  const [slug, setSlug] = useState("");
-  const [description, setDescription] = useState("");
-  const [modelName, setModelName] = useState("llama3.1:latest");
-  const [modelBaseUrl, setModelBaseUrl] = useState("");
-  const [modelTemperature, setModelTemperature] = useState("0.7");
-  const [systemPrompt, setSystemPrompt] = useState("You are a helpful assistant.");
-  const [selectedTools, setSelectedTools] = useState<string[]>([]);
-  const [runInput, setRunInput] = useState("What time is it? Use the current_time tool.");
+  const [name, setName] = useState(BLANK_DEFAULTS.name);
+  const [slug, setSlug] = useState(BLANK_DEFAULTS.slug);
+  const [description, setDescription] = useState(BLANK_DEFAULTS.description);
+  const [modelName, setModelName] = useState(BLANK_DEFAULTS.modelName);
+  const [modelBaseUrl, setModelBaseUrl] = useState(BLANK_DEFAULTS.modelBaseUrl);
+  const [modelTemperature, setModelTemperature] = useState(BLANK_DEFAULTS.modelTemperature);
+  const [modelProvider, setModelProvider] = useState(BLANK_DEFAULTS.modelProvider);
+  const [systemPrompt, setSystemPrompt] = useState(BLANK_DEFAULTS.systemPrompt);
+  const [selectedTools, setSelectedTools] = useState<string[]>(BLANK_DEFAULTS.selectedTools);
+  const [defaultRunInput, setDefaultRunInput] = useState(BLANK_DEFAULTS.defaultRunInput);
+  const [maxConcurrentRuns, setMaxConcurrentRuns] = useState(BLANK_DEFAULTS.maxConcurrentRuns);
+  const [selectedPresetId, setSelectedPresetId] = useState("");
 
   useEffect(() => {
     if (agent) {
@@ -41,10 +70,39 @@ export function AgentEditorPage() {
       setModelName(agent.modelName);
       setModelBaseUrl(agent.modelBaseUrl ?? "");
       setModelTemperature(String(agent.modelTemperature));
+      setModelProvider(agent.modelProvider);
       setSystemPrompt(agent.systemPrompt);
       setSelectedTools(agent.tools);
+      setDefaultRunInput(agent.defaultRunInput ?? "");
+      setMaxConcurrentRuns(String(agent.maxConcurrentRuns));
     }
   }, [agent]);
+
+  const toolGroups = useMemo(() => groupTools(tools), [tools]);
+
+  function applyPreset(preset: RolePreset) {
+    setName(preset.name);
+    setSlug(preset.suggestedSlug);
+    setDescription(preset.description);
+    setSystemPrompt(preset.systemPrompt);
+    setSelectedTools(preset.tools);
+    setDefaultRunInput(preset.defaultRunInput);
+  }
+
+  function handlePresetChange(presetId: string) {
+    setSelectedPresetId(presetId);
+    if (presetId === "") {
+      setName(BLANK_DEFAULTS.name);
+      setSlug(BLANK_DEFAULTS.slug);
+      setDescription(BLANK_DEFAULTS.description);
+      setSystemPrompt(BLANK_DEFAULTS.systemPrompt);
+      setSelectedTools(BLANK_DEFAULTS.selectedTools);
+      setDefaultRunInput(BLANK_DEFAULTS.defaultRunInput);
+      return;
+    }
+    const preset = rolePresets.find((p) => p.id === presetId);
+    if (preset) applyPreset(preset);
+  }
 
   const saveMutation = useMutation({
     mutationFn: async () => {
@@ -52,13 +110,14 @@ export function AgentEditorPage() {
         name,
         slug,
         description: description || undefined,
-        modelProvider: "openai",
+        modelProvider,
         modelName,
         modelBaseUrl: modelBaseUrl || undefined,
         modelTemperature: Number(modelTemperature),
         systemPrompt,
         tools: selectedTools,
-        maxConcurrentRuns: 1,
+        defaultRunInput: defaultRunInput || null,
+        maxConcurrentRuns: Number(maxConcurrentRuns),
       };
       if (isNew) return api.createAgent(payload);
       return api.updateAgent(id!, payload);
@@ -76,7 +135,8 @@ export function AgentEditorPage() {
         const saved = await saveMutation.mutateAsync();
         agentId = saved.id;
       }
-      return api.startRun(agentId!, runInput);
+      const input = defaultRunInput || "Hello";
+      return api.startRun(agentId!, input);
     },
     onSuccess: (data) => navigate(`/runs/${data.runId}`),
   });
@@ -87,11 +147,38 @@ export function AgentEditorPage() {
     );
   }
 
+  const recommendedTools = selectedPresetId
+    ? rolePresets.find((p) => p.id === selectedPresetId)?.tools ?? []
+    : [];
+
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <h1 className="text-2xl font-bold">{isNew ? "New agent" : "Edit agent"}</h1>
 
       <Card className="space-y-4">
+        {isNew && (
+          <div>
+            <Label>Start from template</Label>
+            <select
+              className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+              value={selectedPresetId}
+              onChange={(e) => handlePresetChange(e.target.value)}
+            >
+              <option value="">Blank agent</option>
+              {rolePresets.map((preset) => (
+                <option key={preset.id} value={preset.id}>
+                  {preset.name}
+                </option>
+              ))}
+            </select>
+            {recommendedTools.length > 0 && (
+              <p className="mt-2 text-sm text-muted">
+                Recommended tools: {recommendedTools.join(", ")}
+              </p>
+            )}
+          </div>
+        )}
+
         <div>
           <Label>Name</Label>
           <Input value={name} onChange={(e) => setName(e.target.value)} />
@@ -103,6 +190,26 @@ export function AgentEditorPage() {
         <div>
           <Label>Description</Label>
           <Input value={description} onChange={(e) => setDescription(e.target.value)} />
+        </div>
+
+        <div>
+          <Label>Model provider</Label>
+          <select
+            className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+            value={modelProvider}
+            onChange={(e) => setModelProvider(e.target.value)}
+          >
+            <option value="openai">OpenAI-compatible</option>
+            <option value="anthropic" disabled>
+              Anthropic (later)
+            </option>
+            <option value="bedrock" disabled>
+              Bedrock (later)
+            </option>
+          </select>
+          <p className="mt-1 text-xs text-muted">
+            OpenAI-compatible endpoint; use base URL for Ollama or LiteLLM.
+          </p>
         </div>
         <div>
           <Label>Model</Label>
@@ -128,33 +235,66 @@ export function AgentEditorPage() {
           />
         </div>
         <div>
+          <Label>Max concurrent runs</Label>
+          <Input
+            type="number"
+            min="1"
+            value={maxConcurrentRuns}
+            onChange={(e) => setMaxConcurrentRuns(e.target.value)}
+          />
+        </div>
+        <div>
           <Label>System prompt</Label>
           <Textarea value={systemPrompt} onChange={(e) => setSystemPrompt(e.target.value)} />
         </div>
+
         <div>
           <Label>Tools</Label>
-          <div className="mt-2 space-y-2">
-            {tools.map((tool) => (
-              <label key={tool.id} className="flex items-center gap-2 text-sm">
-                <Checkbox
+          {toolGroups.safe.length > 0 && (
+            <div className="mt-2 space-y-2">
+              <p className="text-xs font-medium uppercase tracking-wide text-muted">Safe</p>
+              {toolGroups.safe.map((tool) => (
+                <ToolCard
+                  key={tool.id}
+                  tool={tool}
                   checked={selectedTools.includes(tool.id)}
-                  onChange={() => toggleTool(tool.id)}
+                  onToggle={() => toggleTool(tool.id)}
                 />
-                <span>{tool.name}</span>
-                <span className="text-muted">— {tool.description}</span>
-              </label>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
+          {toolGroups.network.length > 0 && (
+            <div className="mt-4 space-y-2">
+              <p className="text-xs font-medium uppercase tracking-wide text-muted">Network</p>
+              {toolGroups.network.map((tool) => (
+                <ToolCard
+                  key={tool.id}
+                  tool={tool}
+                  checked={selectedTools.includes(tool.id)}
+                  onToggle={() => toggleTool(tool.id)}
+                />
+              ))}
+            </div>
+          )}
         </div>
+
         <div>
-          <Label>Run input (for Test Run)</Label>
-          <Textarea value={runInput} onChange={(e) => setRunInput(e.target.value)} />
+          <Label>Default run input</Label>
+          <Textarea
+            value={defaultRunInput}
+            onChange={(e) => setDefaultRunInput(e.target.value)}
+            placeholder="Message used when you click Run"
+          />
         </div>
         <div className="flex gap-2 pt-2">
           <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending}>
             Save
           </Button>
-          <Button variant="outline" onClick={() => runMutation.mutate()} disabled={runMutation.isPending}>
+          <Button
+            variant="outline"
+            onClick={() => runMutation.mutate()}
+            disabled={runMutation.isPending}
+          >
             Run
           </Button>
         </div>

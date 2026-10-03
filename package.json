@@ -16,7 +16,8 @@
     "lint": "turbo run lint",
     "db:generate": "dotenv -e .env -- npm run generate -w @jaha-eye/database",
     "db:migrate": "dotenv -e .env -- npm run migrate -w @jaha-eye/database",
-    "db:push": "dotenv -e .env -- npm run push -w @jaha-eye/database"
+    "db:push": "dotenv -e .env -- npm run push -w @jaha-eye/database",
+    "db:seed": "dotenv -e .env -- npm run seed -w @jaha-eye/database"
   },
   "devDependencies": {
     "dotenv-cli": "^8.0.0",

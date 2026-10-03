@@ -37,6 +37,7 @@ model Agent {
   modelTemperature  Float       @default(0.7) @map("model_temperature")
   systemPrompt      String      @default("You are a helpful assistant.") @map("system_prompt")
   tools             Json        @default("[]")
+  defaultRunInput   String?     @map("default_run_input")
   maxConcurrentRuns Int         @default(1) @map("max_concurrent_runs")
   createdAt         DateTime    @default(now()) @map("created_at")
   updatedAt         DateTime    @updatedAt @map("updated_at")
