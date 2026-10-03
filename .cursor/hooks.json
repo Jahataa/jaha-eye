@@ -1,0 +1,10 @@
+{
+  "hooks": {
+    "sessionStart": [
+      {
+        "type": "prompt",
+        "prompt": ".cursor/hooks/session-start.md"
+      }
+    ]
+  }
+}

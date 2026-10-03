@@ -1,0 +1,9 @@
+---
+description: Agent runtime conventions
+globs: "packages/agent-core/**"
+---
+
+- `StrandsRuntime` is the only site that imports `@strands-agents/sdk`.
+- Use `@ag-ui/aws-strands` `StrandsAgent` adapter; do not use `createStrandsApp`.
+- `AgentFactory` builds Strands agents from database definitions.
+- Event normalizer maps Strands/AG-UI events to persisted `AgentRunEvent` shape.

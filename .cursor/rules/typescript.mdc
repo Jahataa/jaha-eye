@@ -1,0 +1,9 @@
+---
+description: TypeScript conventions
+globs: "**/*.{ts,tsx}"
+---
+
+- Use strict TypeScript; prefer explicit return types on public APIs.
+- Package scope is `@jaha-eye/*`.
+- Share types via `@jaha-eye/shared`; do not duplicate schemas.
+- Use Zod for runtime validation at API boundaries.

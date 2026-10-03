@@ -1,0 +1,8 @@
+---
+description: Database conventions
+globs: "packages/database/**,**/*.prisma"
+---
+
+- Prisma schema is the source of truth for agent state.
+- No ad-hoc SQL for agent/run/event data.
+- Migrations live in `packages/database/prisma/migrations/`.

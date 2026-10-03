@@ -1,0 +1,8 @@
+---
+description: Documentation update rule
+globs: "docs/**"
+---
+
+- Update matching docs in the same pass as code changes.
+- UI changes → docs/ui/; config → docs/conf/; source → docs/src/.
+- Keep pages short and accurate; label Phase 2 items as later, not present.

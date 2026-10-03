@@ -1,0 +1,9 @@
+---
+description: Fastify API conventions
+globs: "apps/api/**"
+---
+
+- Fastify + Zod for request/response validation.
+- `POST /api/agents/:id/run` returns `{ runId }` immediately; execution is in-process.
+- Cancel via `AgentRuntime.cancel()` — never call Strands directly from routes.
+- Write events to Postgres before sending on SSE stream.

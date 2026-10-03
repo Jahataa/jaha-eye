@@ -1,0 +1,9 @@
+---
+description: React UI conventions
+globs: "apps/web/**"
+---
+
+- TanStack Query for server state; Zustand for UI state only.
+- Open run page consumes SSE for live timeline updates.
+- Show activity text ("Searching…"), not fake progress percentages.
+- Verify UI changes in the browser before marking done.

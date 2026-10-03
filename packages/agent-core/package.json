@@ -1,0 +1,36 @@
+{
+  "name": "@jaha-eye/agent-core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@ag-ui/a2ui-toolkit": "^0.0.4",
+    "@ag-ui/aws-strands": "^0.3.0",
+    "@ag-ui/client": "^0.0.59",
+    "@ag-ui/core": "^0.0.59",
+    "@ag-ui/encoder": "^0.0.59",
+    "@jaha-eye/shared": "*",
+    "@modelcontextprotocol/sdk": "^1.25.2",
+    "@opentelemetry/api": "^1.9.0",
+    "@strands-agents/sdk": "^1.19.0",
+    "openai": "^6.45.0",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
+  }
+}

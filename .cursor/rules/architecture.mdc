@@ -1,0 +1,11 @@
+---
+description: Core architecture boundaries for jaha-eye
+alwaysApply: true
+---
+
+- An **agent** is a saved definition; a **run** is one execution.
+- The API never calls `new Agent()` — only `AgentFactory` / `StrandsRuntime`.
+- The UI speaks REST and AG-UI SSE only; no Strands types in apps/web.
+- Persist every event to `AgentRunEvent` before streaming to the client.
+- Phase 1: no Redis, BullMQ, worker, schedules, or Langfuse.
+- Do not use `createStrandsApp`; Fastify encodes SSE itself.
