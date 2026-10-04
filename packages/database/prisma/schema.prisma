@@ -111,3 +111,15 @@ model AgentRunEvent {
   @@index([runId])
   @@map("agent_run_events")
 }
+
+model AppSettings {
+  id                 String   @id @default("default")
+  llmApiKey          String?  @map("llm_api_key")
+  llmBaseUrl         String?  @map("llm_base_url")
+  defaultModelName   String   @default("gpt-4o-mini") @map("default_model_name")
+  defaultTemperature Float    @default(0.7) @map("default_temperature")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  @@map("app_settings")
+}

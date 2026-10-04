@@ -4,12 +4,22 @@ Fastify control API with Zod validation.
 
 ## Routes
 
+### Settings
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/settings` | Effective LLM config (masked key: `hasApiKey`, `apiKeySource`) |
+| PATCH | `/api/settings` | Upsert global LLM settings |
+| POST | `/api/settings/test` | Probe `{baseUrl}/models` with Bearer key; returns model ids |
+
+Resolution order at run time: Settings row → `.env` fallback. Raw API key is never returned on GET.
+
 ### Agents
 
 | Method | Path | Description |
 |--------|------|-------------|
 | GET | `/api/agents` | List agents |
-| POST | `/api/agents` | Create agent |
+| POST | `/api/agents` | Create agent (omitted `modelName` / `modelTemperature` filled from Settings) |
 | GET | `/api/agents/:id` | Get agent |
 | PATCH | `/api/agents/:id` | Update agent |
 | DELETE | `/api/agents/:id` | Delete agent |

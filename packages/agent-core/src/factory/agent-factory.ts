@@ -5,16 +5,16 @@ import type { AgentDefinition } from "@jaha-eye/shared";
 import { resolveTools } from "../tools/registry.js";
 
 export interface AgentFactoryConfig {
-  openaiApiKey?: string;
-  openaiBaseUrl?: string;
+  resolveLlmDefaults: () => Promise<{ openaiApiKey?: string; openaiBaseUrl?: string }>;
 }
 
 export class AgentFactory {
   constructor(private readonly config: AgentFactoryConfig) {}
 
-  createStrandsAgent(definition: AgentDefinition, agentsByThread: Map<string, Agent>) {
-    const baseUrl = definition.modelBaseUrl ?? this.config.openaiBaseUrl;
-    const apiKey = this.config.openaiApiKey ?? process.env.OPENAI_API_KEY ?? "not-set";
+  async createStrandsAgent(definition: AgentDefinition, agentsByThread: Map<string, Agent>) {
+    const defaults = await this.config.resolveLlmDefaults();
+    const baseUrl = definition.modelBaseUrl ?? defaults.openaiBaseUrl;
+    const apiKey = defaults.openaiApiKey ?? process.env.OPENAI_API_KEY ?? "not-set";
 
     const model = new OpenAIModel({
       modelId: definition.modelName,

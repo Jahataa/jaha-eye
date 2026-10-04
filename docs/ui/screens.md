@@ -11,6 +11,7 @@
 | `/orchestrations/:id` | Orchestration editor | Edit graph, metadata, default run input; Save, Run |
 | `/runs` | Run history | Table of top-level runs with status, source (agent or orchestration), duration |
 | `/runs/:id` | Run detail | Status, input, output, stop button, execution timeline |
+| `/settings` | Settings | Global LLM config: base URL, API key, default model, temperature; Test connection |
 
 ## Orchestration editor
 

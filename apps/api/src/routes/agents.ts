@@ -10,6 +10,7 @@ import { getBuiltinToolCatalog } from "@jaha-eye/agent-core";
 import { mapAgent } from "../lib/mappers.js";
 import { isAgentReferencedInOrchestrations } from "../services/orchestration-service.js";
 import { startRun } from "../services/run-service.js";
+import { getDefaultModelDefaults } from "../services/settings-service.js";
 
 export const agentRoutes: FastifyPluginAsync = async (app) => {
   app.get("/api/agents", async () => {
@@ -31,8 +32,15 @@ export const agentRoutes: FastifyPluginAsync = async (app) => {
     const parsed = CreateAgentSchema.safeParse(req.body);
     if (!parsed.success) return reply.status(400).send(parsed.error.flatten());
 
+    const defaults = await getDefaultModelDefaults();
+    const data = {
+      ...parsed.data,
+      modelName: parsed.data.modelName ?? defaults.defaultModelName,
+      modelTemperature: parsed.data.modelTemperature ?? defaults.defaultTemperature,
+    };
+
     try {
-      const agent = await prisma.agent.create({ data: parsed.data });
+      const agent = await prisma.agent.create({ data });
       return reply.status(201).send(mapAgent(agent));
     } catch {
       return reply.status(409).send({ error: "Slug already exists" });

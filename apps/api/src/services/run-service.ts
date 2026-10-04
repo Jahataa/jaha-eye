@@ -6,11 +6,11 @@ import {
 } from "@jaha-eye/agent-core";
 import type { AgentDefinition, PersistedAgentEvent } from "@jaha-eye/shared";
 import { eventBus } from "./event-bus.js";
+import { getEffectiveLlmConfig } from "./settings-service.js";
 import { mapAgent, mapEvent } from "../lib/mappers.js";
 
 const factory = new AgentFactory({
-  openaiApiKey: process.env.OPENAI_API_KEY,
-  openaiBaseUrl: process.env.OPENAI_BASE_URL,
+  resolveLlmDefaults: getEffectiveLlmConfig,
 });
 
 export const runtime = new StrandsRuntime(factory);

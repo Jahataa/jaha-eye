@@ -10,6 +10,7 @@ Shared Zod schemas and TypeScript types used by API, web, and agent-core.
 | `run.ts` | Run schemas, status enums |
 | `event.ts` | PersistedAgentEvent, AG-UI type helpers |
 | `tool.ts` | Built-in tool catalog |
+| `settings.ts` | LLM settings GET/PATCH/test schemas |
 | `api.ts` | Request/response DTOs |
 
 ## Conventions

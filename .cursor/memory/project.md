@@ -22,6 +22,7 @@
 - Six built-in tools (current_time, calculator, sleep, notebook, http_request, web_fetch)
 - Role presets (General, Researcher, API operator, Planner)
 - OpenAI-compatible default model provider
+- Global LLM Settings page (`/settings`) — API key, base URL, default model/temperature
 
 ## Out of scope (later phases)
 

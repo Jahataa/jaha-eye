@@ -142,7 +142,8 @@ See [docs/src/database.md](../src/database.md) for the current schema.
 |-------|-------|---------|
 | `/schedules` | 2 | Cron and webhook schedule management |
 | `/approvals` | 2 | Pending approval queue |
-| `/settings` | 2 | System settings, model registry |
+| `/settings` | 1 | Global LLM settings (API key, base URL, default model) |
+| Model registry | 2 | Multi-provider model catalog beyond Settings defaults |
 | `/tools` | 2 | Global tool catalog and permissions |
 | `/agents/:id/versions` | 2 | Version history tab |
 

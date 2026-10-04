@@ -60,6 +60,20 @@ Prisma schema is the source of truth.
 | timestamp | datetime | Event time |
 | payload | json | Full event payload |
 
+### AppSettings
+
+Singleton row (`id = "default"`) for global LLM configuration.
+
+| Field | Type | Notes |
+|-------|------|-------|
+| id | string | Fixed `"default"` |
+| llmApiKey | string? | Stored API key (never returned on GET) |
+| llmBaseUrl | string? | OpenAI-compatible base URL |
+| defaultModelName | string | Default for new agents (`gpt-4o-mini`) |
+| defaultTemperature | float | Default for new agents (`0.7`) |
+
+First GET returns effective env values without writing a row; first PATCH upserts the singleton.
+
 ## Commands
 
 ```bash

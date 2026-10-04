@@ -5,10 +5,14 @@ import type {
   BuiltinTool,
   CreateAgentInput,
   CreateOrchestrationInput,
+  LlmModelsResponse,
+  LlmSettings,
   OrchestrationDefinition,
   PersistedAgentEvent,
   RolePreset,
+  TestLlmSettingsInput,
   UpdateAgentInput,
+  UpdateLlmSettingsInput,
   UpdateOrchestrationInput,
 } from "@jaha-eye/shared";
 
@@ -72,4 +76,12 @@ export const api = {
   cancelRun: (id: string) => request<AgentRun>(`/api/runs/${id}/cancel`, { method: "POST" }),
   getTools: () => request<BuiltinTool[]>("/api/tools"),
   getRolePresets: () => request<RolePreset[]>("/api/role-presets"),
+  getSettings: () => request<LlmSettings>("/api/settings"),
+  updateSettings: (data: UpdateLlmSettingsInput) =>
+    request<LlmSettings>("/api/settings", { method: "PATCH", body: JSON.stringify(data) }),
+  testSettings: (data?: TestLlmSettingsInput) =>
+    request<LlmModelsResponse>("/api/settings/test", {
+      method: "POST",
+      body: JSON.stringify(data ?? {}),
+    }),
 };

@@ -7,7 +7,7 @@ import type { AgentRunInput, AgentRunStatus, AgentRuntime } from "./types.js";
 
 interface ActiveRun {
   status: AgentRunStatus;
-  strandsAgent: ReturnType<AgentFactory["createStrandsAgent"]>["strandsAgent"];
+  strandsAgent: Awaited<ReturnType<AgentFactory["createStrandsAgent"]>>["strandsAgent"];
 }
 
 export class StrandsRuntime implements AgentRuntime {
@@ -21,7 +21,7 @@ export class StrandsRuntime implements AgentRuntime {
     input: AgentRunInput,
   ): AsyncIterable<NormalizedEvent> {
     const { runId, message } = input;
-    const { strandsAgent } = this.factory.createStrandsAgent(
+    const { strandsAgent } = await this.factory.createStrandsAgent(
       definition,
       this.agentsByThread,
     );

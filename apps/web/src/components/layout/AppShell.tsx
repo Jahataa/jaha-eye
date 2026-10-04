@@ -10,6 +10,7 @@ const links = [
   { to: "/agents", label: "Agents" },
   { to: "/orchestrations", label: "Orchestrations" },
   { to: "/runs", label: "Runs" },
+  { to: "/settings", label: "Settings" },
 ];
 
 function HudTopBar() {

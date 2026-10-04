@@ -2,6 +2,16 @@
 
 Short record of architectural decisions. Append new entries at the top.
 
+## 2026-10-04 — Global LLM Settings in Postgres
+
+| Decision | Why |
+|----------|-----|
+| `AppSettings` singleton row for LLM config | Operators configure API key, base URL, and defaults in the UI without editing `.env` |
+| Settings → env fallback | Existing Ollama setups keep working until Settings is saved |
+| `resolveLlmDefaults` per run in `AgentFactory` | Next run picks up Settings changes without API restart |
+| GET never returns raw API key | Password field + `hasApiKey` / `apiKeySource` only |
+| New agents copy Settings defaults at create time | Per-agent model fields remain the source of truth for runs |
+
 ## 2026-10-04 — Orchestration graphs: own DAG executor, not Strands Graph
 
 | Decision | Why |

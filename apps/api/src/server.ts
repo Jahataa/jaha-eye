@@ -9,6 +9,7 @@ import cors from "@fastify/cors";
 import { agentRoutes } from "./routes/agents.js";
 import { orchestrationRoutes } from "./routes/orchestrations.js";
 import { runRoutes } from "./routes/runs.js";
+import { settingsRoutes } from "./routes/settings.js";
 
 const port = Number(process.env.API_PORT ?? 4000);
 const host = process.env.API_HOST ?? "0.0.0.0";
@@ -19,6 +20,7 @@ await app.register(cors, { origin: true });
 await app.register(agentRoutes);
 await app.register(orchestrationRoutes);
 await app.register(runRoutes);
+await app.register(settingsRoutes);
 
 app.get("/health", async () => ({ ok: true }));
 

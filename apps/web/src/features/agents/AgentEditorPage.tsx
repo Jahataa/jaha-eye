@@ -14,9 +14,9 @@ const BLANK_DEFAULTS = {
   name: "",
   slug: "",
   description: "",
-  modelName: "gpt-4o-mini",
+  modelName: "",
   modelBaseUrl: "",
-  modelTemperature: "0.7",
+  modelTemperature: "",
   modelProvider: "openai",
   systemPrompt: "You are a helpful assistant.",
   selectedTools: [] as string[],
@@ -48,6 +48,11 @@ export function AgentEditorPage() {
     queryFn: api.getRolePresets,
     enabled: isNew,
   });
+  const { data: settings } = useQuery({
+    queryKey: ["settings"],
+    queryFn: api.getSettings,
+    enabled: isNew,
+  });
 
   const [name, setName] = useState(BLANK_DEFAULTS.name);
   const [slug, setSlug] = useState(BLANK_DEFAULTS.slug);
@@ -62,6 +67,13 @@ export function AgentEditorPage() {
   const [maxConcurrentRuns, setMaxConcurrentRuns] = useState(BLANK_DEFAULTS.maxConcurrentRuns);
   const [selectedPresetId, setSelectedPresetId] = useState("");
   const [saveFeedback, setSaveFeedback] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isNew && settings && !modelName && !modelTemperature) {
+      setModelName(settings.defaultModelName);
+      setModelTemperature(String(settings.defaultTemperature));
+    }
+  }, [isNew, settings, modelName, modelTemperature]);
 
   useEffect(() => {
     if (agent) {
@@ -246,6 +258,7 @@ export function AgentEditorPage() {
             onChange={(e) => setModelBaseUrl(e.target.value)}
             placeholder="http://localhost:11434/v1"
           />
+          <p className="mt-1 text-xs text-muted">Leave blank to use Settings.</p>
         </div>
         <div>
           <Label>Temperature</Label>
