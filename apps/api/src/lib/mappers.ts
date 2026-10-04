@@ -1,5 +1,12 @@
-import type { Agent, AgentRun, AgentRunEvent } from "@jaha-eye/database";
-import type { AgentDefinition, AgentRun as SharedRun, PersistedAgentEvent } from "@jaha-eye/shared";
+import type { Agent, AgentRun, AgentRunEvent, Orchestration } from "@jaha-eye/database";
+import type {
+  AgentDefinition,
+  AgentRun as SharedRun,
+  OrchestrationDefinition,
+  OrchestrationGraph,
+  PersistedAgentEvent,
+  RunChildSummary,
+} from "@jaha-eye/shared";
 
 export function mapAgent(agent: Agent): AgentDefinition {
   return {
@@ -25,6 +32,8 @@ export function mapRun(run: AgentRun): SharedRun {
   return {
     id: run.id,
     agentId: run.agentId,
+    orchestrationId: run.orchestrationId,
+    graphNodeId: run.graphNodeId,
     parentRunId: run.parentRunId,
     status: run.status,
     trigger: run.trigger,
@@ -35,6 +44,29 @@ export function mapRun(run: AgentRun): SharedRun {
     completedAt: run.completedAt,
     createdAt: run.createdAt,
     updatedAt: run.updatedAt,
+  };
+}
+
+export function mapRunChild(run: Pick<AgentRun, "id" | "agentId" | "graphNodeId" | "status">): RunChildSummary {
+  return {
+    id: run.id,
+    agentId: run.agentId,
+    graphNodeId: run.graphNodeId,
+    status: run.status,
+  };
+}
+
+export function mapOrchestration(orchestration: Orchestration): OrchestrationDefinition {
+  return {
+    id: orchestration.id,
+    name: orchestration.name,
+    slug: orchestration.slug,
+    description: orchestration.description,
+    status: orchestration.status,
+    graph: orchestration.graph as OrchestrationGraph,
+    defaultRunInput: orchestration.defaultRunInput,
+    createdAt: orchestration.createdAt,
+    updatedAt: orchestration.updatedAt,
   };
 }
 

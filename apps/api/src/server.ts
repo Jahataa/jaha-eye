@@ -7,6 +7,7 @@ config({ path: resolve(__dirname, "../../../.env") });
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import { agentRoutes } from "./routes/agents.js";
+import { orchestrationRoutes } from "./routes/orchestrations.js";
 import { runRoutes } from "./routes/runs.js";
 
 const port = Number(process.env.API_PORT ?? 4000);
@@ -16,6 +17,7 @@ const app = Fastify({ logger: true });
 
 await app.register(cors, { origin: true });
 await app.register(agentRoutes);
+await app.register(orchestrationRoutes);
 await app.register(runRoutes);
 
 app.get("/health", async () => ({ ok: true }));

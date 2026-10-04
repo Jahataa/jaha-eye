@@ -92,3 +92,12 @@ body {
   background-size: 100% 200%;
   animation: hud-scan 2.5s linear infinite;
 }
+
+.react-flow__edge-path {
+  stroke: rgb(125 249 255 / 0.45);
+  stroke-width: 1.5;
+}
+
+.react-flow__node.selected .agent-node {
+  box-shadow: 0 0 12px rgb(125 249 255 / 0.35);
+}

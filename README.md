@@ -63,6 +63,6 @@ Included: agent CRUD, manual runs, live SSE timeline, cancel, event persistence.
 
 Not included (Phase 2+): Redis, BullMQ, worker process, schedules, approvals, Langfuse.
 
-## Research
+## Planning
 
-Original architecture research: [research.md](research.md)
+Architecture foundations and phased roadmap: [docs/planning/](docs/planning/README.md)

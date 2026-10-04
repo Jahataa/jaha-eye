@@ -21,7 +21,7 @@ jaha-eye is an **operator console for many agents**, not a chat app. Read this f
 | `packages/agent-core` | `AgentRuntime`, Strands factory, event normalizer |
 | `packages/database` | Prisma schema + client |
 | `packages/shared` | Shared Zod schemas and types |
-| `research.md` | Original research notes (source material) |
+| `docs/planning/` | Architecture foundations, roadmap, future capabilities |
 
 ## Hard rules
 

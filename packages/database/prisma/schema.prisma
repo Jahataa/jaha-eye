@@ -25,6 +25,11 @@ enum RunTrigger {
   manual
 }
 
+enum OrchestrationStatus {
+  active
+  disabled
+}
+
 model Agent {
   id                String      @id @default(uuid())
   name              String
@@ -47,26 +52,47 @@ model Agent {
   @@map("agents")
 }
 
-model AgentRun {
-  id          String     @id @default(uuid())
-  agentId     String     @map("agent_id")
-  parentRunId String?    @map("parent_run_id")
-  status      RunStatus  @default(queued)
-  trigger     RunTrigger @default(manual)
-  input       Json
-  output      Json?
-  error       Json?
-  startedAt   DateTime?  @map("started_at")
-  completedAt DateTime?  @map("completed_at")
-  createdAt   DateTime   @default(now()) @map("created_at")
-  updatedAt   DateTime   @updatedAt @map("updated_at")
+model Orchestration {
+  id              String              @id @default(uuid())
+  name            String
+  slug            String              @unique
+  description     String?
+  status          OrchestrationStatus @default(active)
+  graph           Json
+  defaultRunInput String?             @map("default_run_input")
+  createdAt       DateTime            @default(now()) @map("created_at")
+  updatedAt       DateTime            @updatedAt @map("updated_at")
 
-  agent    Agent           @relation(fields: [agentId], references: [id], onDelete: Cascade)
-  parent   AgentRun?       @relation("RunHierarchy", fields: [parentRunId], references: [id])
-  children AgentRun[]    @relation("RunHierarchy")
-  events   AgentRunEvent[]
+  runs AgentRun[]
+
+  @@map("orchestrations")
+}
+
+model AgentRun {
+  id              String     @id @default(uuid())
+  agentId         String?    @map("agent_id")
+  orchestrationId String?    @map("orchestration_id")
+  graphNodeId     String?    @map("graph_node_id")
+  parentRunId     String?    @map("parent_run_id")
+  status          RunStatus  @default(queued)
+  trigger         RunTrigger @default(manual)
+  input           Json
+  output          Json?
+  error           Json?
+  startedAt       DateTime?  @map("started_at")
+  completedAt     DateTime?  @map("completed_at")
+  createdAt       DateTime   @default(now()) @map("created_at")
+  updatedAt       DateTime   @updatedAt @map("updated_at")
+
+  agent         Agent?         @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  orchestration Orchestration? @relation(fields: [orchestrationId], references: [id], onDelete: SetNull)
+  parent        AgentRun?      @relation("RunHierarchy", fields: [parentRunId], references: [id])
+  children      AgentRun[]     @relation("RunHierarchy")
+  events        AgentRunEvent[]
 
   @@index([agentId])
+  @@index([orchestrationId])
+  @@index([parentRunId])
   @@index([status])
   @@map("agent_runs")
 }

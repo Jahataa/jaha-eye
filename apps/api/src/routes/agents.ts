@@ -8,6 +8,7 @@ import {
 } from "@jaha-eye/shared";
 import { getBuiltinToolCatalog } from "@jaha-eye/agent-core";
 import { mapAgent } from "../lib/mappers.js";
+import { isAgentReferencedInOrchestrations } from "../services/orchestration-service.js";
 import { startRun } from "../services/run-service.js";
 
 export const agentRoutes: FastifyPluginAsync = async (app) => {
@@ -54,6 +55,13 @@ export const agentRoutes: FastifyPluginAsync = async (app) => {
   });
 
   app.delete<{ Params: { id: string } }>("/api/agents/:id", async (req, reply) => {
+    const agent = await prisma.agent.findUnique({ where: { id: req.params.id } });
+    if (!agent) return reply.status(404).send({ error: "Agent not found" });
+
+    if (await isAgentReferencedInOrchestrations(req.params.id)) {
+      return reply.status(409).send({ error: "Agent is referenced by an orchestration" });
+    }
+
     try {
       await prisma.agent.delete({ where: { id: req.params.id } });
       return reply.status(204).send();

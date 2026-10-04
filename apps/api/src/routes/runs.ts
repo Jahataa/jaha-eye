@@ -1,6 +1,6 @@
 import type { FastifyPluginAsync } from "fastify";
 import { prisma } from "@jaha-eye/database";
-import { mapEvent, mapRun } from "../lib/mappers.js";
+import { mapEvent, mapRun, mapRunChild } from "../lib/mappers.js";
 import { cancelRun } from "../services/run-service.js";
 import { eventBus } from "../services/event-bus.js";
 
@@ -9,6 +9,7 @@ const TERMINAL = new Set(["completed", "failed", "cancelled"]);
 export const runRoutes: FastifyPluginAsync = async (app) => {
   app.get("/api/runs", async () => {
     const runs = await prisma.agentRun.findMany({
+      where: { parentRunId: null },
       orderBy: { createdAt: "desc" },
       take: 100,
     });
@@ -18,7 +19,17 @@ export const runRoutes: FastifyPluginAsync = async (app) => {
   app.get<{ Params: { id: string } }>("/api/runs/:id", async (req, reply) => {
     const run = await prisma.agentRun.findUnique({ where: { id: req.params.id } });
     if (!run) return reply.status(404).send({ error: "Run not found" });
-    return mapRun(run);
+
+    const children = await prisma.agentRun.findMany({
+      where: { parentRunId: run.id },
+      select: { id: true, agentId: true, graphNodeId: true, status: true },
+      orderBy: { createdAt: "asc" },
+    });
+
+    return {
+      ...mapRun(run),
+      children: children.map(mapRunChild),
+    };
   });
 
   app.get<{ Params: { id: string } }>("/api/runs/:id/events", async (req, reply) => {

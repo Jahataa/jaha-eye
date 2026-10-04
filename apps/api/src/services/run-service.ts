@@ -15,6 +15,9 @@ const factory = new AgentFactory({
 
 export const runtime = new StrandsRuntime(factory);
 
+/** Serializes event persistence per run so parallel orchestration nodes cannot collide on sequence. */
+const persistQueues = new Map<string, Promise<void>>();
+
 async function nextSequence(runId: string): Promise<number> {
   const last = await prisma.agentRunEvent.findFirst({
     where: { runId },
@@ -24,7 +27,7 @@ async function nextSequence(runId: string): Promise<number> {
   return (last?.sequence ?? 0) + 1;
 }
 
-async function persistEvent(
+async function persistRunEventInner(
   runId: string,
   normalized: NormalizedEvent,
 ): Promise<PersistedAgentEvent> {
@@ -43,6 +46,30 @@ async function persistEvent(
   return persisted;
 }
 
+export function persistRunEvent(
+  runId: string,
+  normalized: NormalizedEvent,
+): Promise<PersistedAgentEvent> {
+  const previous = persistQueues.get(runId) ?? Promise.resolve();
+
+  let release!: () => void;
+  const gate = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  persistQueues.set(runId, previous.then(() => gate));
+
+  return previous.then(async () => {
+    try {
+      return await persistRunEventInner(runId, normalized);
+    } finally {
+      release();
+      if (persistQueues.get(runId) === gate) {
+        persistQueues.delete(runId);
+      }
+    }
+  });
+}
+
 export async function executeRun(
   runId: string,
   definition: AgentDefinition,
@@ -55,7 +82,7 @@ export async function executeRun(
 
   try {
     for await (const event of runtime.stream(definition, { runId, message })) {
-      await persistEvent(runId, event);
+      await persistRunEvent(runId, event);
 
       if (event.type === "RUN_FINISHED") {
         await prisma.agentRun.update({
@@ -91,7 +118,7 @@ export async function executeRun(
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
-    await persistEvent(runId, {
+    await persistRunEvent(runId, {
       type: "RUN_ERROR",
       timestamp: new Date(),
       payload: { type: "RUN_ERROR", message },
@@ -130,7 +157,34 @@ export async function startRun(agentId: string, input: string): Promise<string> 
 }
 
 export async function cancelRun(runId: string): Promise<void> {
-  await runtime.cancel(runId);
+  const run = await prisma.agentRun.findUnique({ where: { id: runId } });
+  if (!run) return;
+
+  const { signalOrchestrationCancel } = await import("./orchestration-service.js");
+  if (run.orchestrationId && !run.parentRunId) {
+    signalOrchestrationCancel(runId);
+  }
+
+  const children = await prisma.agentRun.findMany({
+    where: {
+      parentRunId: runId,
+      status: { in: ["queued", "running", "waiting"] },
+    },
+  });
+
+  for (const child of children) {
+    await runtime.cancel(child.id);
+    await prisma.agentRun.update({
+      where: { id: child.id },
+      data: { status: "cancelled", completedAt: new Date() },
+    });
+    eventBus.close(child.id);
+  }
+
+  if (run.agentId) {
+    await runtime.cancel(runId);
+  }
+
   await prisma.agentRun.update({
     where: { id: runId },
     data: { status: "cancelled", completedAt: new Date() },

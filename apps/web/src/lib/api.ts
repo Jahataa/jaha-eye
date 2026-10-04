@@ -1,11 +1,15 @@
 import type {
   AgentDefinition,
   AgentRun,
+  AgentRunDetail,
   BuiltinTool,
   CreateAgentInput,
+  CreateOrchestrationInput,
+  OrchestrationDefinition,
   PersistedAgentEvent,
   RolePreset,
   UpdateAgentInput,
+  UpdateOrchestrationInput,
 } from "@jaha-eye/shared";
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
@@ -39,7 +43,31 @@ export const api = {
       body: JSON.stringify({ input }),
     }),
   getRuns: () => request<AgentRun[]>("/api/runs"),
-  getRun: (id: string) => request<AgentRun>(`/api/runs/${id}`),
+  getRun: (id: string) => request<AgentRunDetail>(`/api/runs/${id}`),
+  getOrchestrations: () => request<OrchestrationDefinition[]>("/api/orchestrations"),
+  getOrchestration: (id: string) =>
+    request<OrchestrationDefinition>(`/api/orchestrations/${id}`),
+  createOrchestration: (data: CreateOrchestrationInput) =>
+    request<OrchestrationDefinition>("/api/orchestrations", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  updateOrchestration: (id: string, data: UpdateOrchestrationInput) =>
+    request<OrchestrationDefinition>(`/api/orchestrations/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
+  deleteOrchestration: (id: string) =>
+    request<void>(`/api/orchestrations/${id}`, { method: "DELETE" }),
+  enableOrchestration: (id: string) =>
+    request<OrchestrationDefinition>(`/api/orchestrations/${id}/enable`, { method: "POST" }),
+  disableOrchestration: (id: string) =>
+    request<OrchestrationDefinition>(`/api/orchestrations/${id}/disable`, { method: "POST" }),
+  startOrchestrationRun: (id: string, input: string) =>
+    request<{ runId: string }>(`/api/orchestrations/${id}/run`, {
+      method: "POST",
+      body: JSON.stringify({ input }),
+    }),
   getRunEvents: (id: string) => request<PersistedAgentEvent[]>(`/api/runs/${id}/events`),
   cancelRun: (id: string) => request<AgentRun>(`/api/runs/${id}/cancel`, { method: "POST" }),
   getTools: () => request<BuiltinTool[]>("/api/tools"),

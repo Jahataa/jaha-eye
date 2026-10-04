@@ -19,8 +19,16 @@ The control plane manages agent definitions and run lifecycle.
 4. On completion: status → `completed` or `failed`; on cancel → `cancelled`.
 5. Client refresh: `GET /events` for history + `GET /stream` for live tail.
 
+## Security boundary
+
+The browser never connects to agent workers directly. All run start/stop and event streaming go through the control API, which owns authorization.
+
+**Later:** a local Agent Runner process on the host for filesystem/shell tools, connected via secure API — see [planning/future.md](../planning/future.md).
+
 ## Later (Phase 2)
 
 - Separate worker process via BullMQ
 - Redis for live event fan-out
 - Schedules, retries, concurrency limits
+
+Full roadmap: [planning/roadmap.md](../planning/roadmap.md).

@@ -4,10 +4,25 @@ import { useUiStore } from "../stores/ui-store";
 
 const TERMINAL = new Set(["completed", "failed", "cancelled"]);
 
-export function useRunStream(runId: string | undefined, runStatus: string | undefined) {
+type UseRunStreamOptions = {
+  agentNames?: Record<string, string>;
+};
+
+function nodeLabel(agentId: string | undefined, agentNames?: Record<string, string>): string {
+  if (agentId && agentNames?.[agentId]) return agentNames[agentId];
+  if (agentId) return agentId.slice(0, 8);
+  return "Node";
+}
+
+export function useRunStream(
+  runId: string | undefined,
+  runStatus: string | undefined,
+  options?: UseRunStreamOptions,
+) {
   const [liveEvents, setLiveEvents] = useState<PersistedAgentEvent[]>([]);
   const [activity, setActivityLocal] = useState<string | null>(null);
   const setActivity = useUiStore((s) => s.setActivity);
+  const agentNames = options?.agentNames;
 
   useEffect(() => {
     if (!runId || !runStatus || TERMINAL.has(runStatus)) {
@@ -24,12 +39,23 @@ export function useRunStream(runId: string | undefined, runStatus: string | unde
         return [...prev, event];
       });
 
+      const payload = event.payload as Record<string, unknown>;
       let nextActivity: string | null = null;
+
       if (event.type === "TOOL_CALL_START") {
-        const name = String(event.payload.toolCallName ?? "tool");
+        const name = String(payload.toolCallName ?? "tool");
         nextActivity = `Calling ${name}…`;
       } else if (event.type === "TEXT_MESSAGE_START") {
         nextActivity = "Generating response…";
+      } else if (event.type === "NODE_STARTED") {
+        const agentId = String(payload.agentId ?? "");
+        nextActivity = `${nodeLabel(agentId, agentNames)} running…`;
+      } else if (event.type === "NODE_FINISHED") {
+        const agentId = String(payload.agentId ?? "");
+        nextActivity = `${nodeLabel(agentId, agentNames)} finished`;
+      } else if (event.type === "NODE_ERROR") {
+        const agentId = String(payload.agentId ?? "");
+        nextActivity = `${nodeLabel(agentId, agentNames)} failed`;
       } else if (event.type === "RUN_FINISHED") {
         nextActivity = "Run finished";
       } else if (event.type === "RUN_ERROR") {
@@ -48,7 +74,7 @@ export function useRunStream(runId: string | undefined, runStatus: string | unde
       source.close();
       setActivity(null);
     };
-  }, [runId, runStatus, setActivity]);
+  }, [runId, runStatus, setActivity, agentNames]);
 
   return { liveEvents, activity };
 }

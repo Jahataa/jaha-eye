@@ -15,7 +15,9 @@ export type RunTrigger = z.infer<typeof RunTriggerSchema>;
 
 export const AgentRunSchema = z.object({
   id: z.string().uuid(),
-  agentId: z.string().uuid(),
+  agentId: z.string().uuid().nullable(),
+  orchestrationId: z.string().uuid().nullable(),
+  graphNodeId: z.string().nullable(),
   parentRunId: z.string().uuid().nullable(),
   status: RunStatusSchema,
   trigger: RunTriggerSchema,
@@ -34,6 +36,21 @@ export const AgentRunSchema = z.object({
 });
 
 export type AgentRun = z.infer<typeof AgentRunSchema>;
+
+export const RunChildSummarySchema = z.object({
+  id: z.string().uuid(),
+  agentId: z.string().uuid().nullable(),
+  graphNodeId: z.string().nullable(),
+  status: RunStatusSchema,
+});
+
+export type RunChildSummary = z.infer<typeof RunChildSummarySchema>;
+
+export const AgentRunDetailSchema = AgentRunSchema.extend({
+  children: z.array(RunChildSummarySchema).optional(),
+});
+
+export type AgentRunDetail = z.infer<typeof AgentRunDetailSchema>;
 
 export const StartRunSchema = z.object({
   input: z.string().default("Hello"),

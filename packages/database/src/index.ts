@@ -13,4 +13,13 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 export { PrismaClient, Prisma };
-export type { Agent, AgentRun, AgentRunEvent, AgentStatus, RunStatus, RunTrigger } from "@prisma/client";
+export type {
+  Agent,
+  AgentRun,
+  AgentRunEvent,
+  AgentStatus,
+  Orchestration,
+  OrchestrationStatus,
+  RunStatus,
+  RunTrigger,
+} from "@prisma/client";

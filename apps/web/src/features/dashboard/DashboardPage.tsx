@@ -12,6 +12,22 @@ function isToday(date: Date | string | null) {
   return d.toDateString() === now.toDateString();
 }
 
+function runLabel(
+  run: { agentId: string | null; orchestrationId: string | null; id: string },
+  agents: { id: string; name: string }[],
+  orchestrations: { id: string; name: string }[],
+): string {
+  if (run.orchestrationId) {
+    const orch = orchestrations.find((o) => o.id === run.orchestrationId);
+    return orch?.name ?? `Orchestration ${run.orchestrationId.slice(0, 8)}`;
+  }
+  if (run.agentId) {
+    const agent = agents.find((a) => a.id === run.agentId);
+    return agent?.name ?? run.agentId;
+  }
+  return run.id.slice(0, 8);
+}
+
 function InstrumentRing() {
   return (
     <svg
@@ -57,6 +73,10 @@ function StatInstrument({
 export function DashboardPage() {
   const { data: runs = [] } = useQuery({ queryKey: ["runs"], queryFn: api.getRuns });
   const { data: agents = [] } = useQuery({ queryKey: ["agents"], queryFn: api.getAgents });
+  const { data: orchestrations = [] } = useQuery({
+    queryKey: ["orchestrations"],
+    queryFn: api.getOrchestrations,
+  });
 
   const running = runs.filter((r) => r.status === "running").length;
   const completedToday = runs.filter((r) => r.status === "completed" && isToday(r.completedAt)).length;
@@ -80,7 +100,6 @@ export function DashboardPage() {
         ) : (
           <ul className="mt-4 space-y-1">
             {activeRuns.map((run) => {
-              const agent = agents.find((a) => a.id === run.agentId);
               const isRunning = run.status === "running";
               return (
                 <li
@@ -95,7 +114,7 @@ export function DashboardPage() {
                   />
                   <div className="min-w-0 flex-1">
                     <Link to={`/runs/${run.id}`} className="font-semibold hover:text-accent">
-                      {agent?.name ?? run.agentId}
+                      {runLabel(run, agents, orchestrations)}
                     </Link>
                     <p className="hud-mono text-xs text-muted">RUN {run.id.slice(0, 8)}</p>
                   </div>

@@ -8,6 +8,7 @@ import { Card, CardTitle } from "../../components/ui/card";
 import { Badge } from "../../components/ui/badge";
 import { EventTimeline } from "../../components/events/EventTimeline";
 import { useRunStream } from "../../hooks/use-run-stream";
+import { OrchestrationRunView } from "./OrchestrationRunView";
 
 const TERMINAL = new Set(["completed", "failed", "cancelled"]);
 
@@ -25,13 +26,25 @@ export function RunDetailPage() {
     },
   });
 
+  const { data: agents = [] } = useQuery({ queryKey: ["agents"], queryFn: api.getAgents });
+  const { data: orchestrations = [] } = useQuery({
+    queryKey: ["orchestrations"],
+    queryFn: api.getOrchestrations,
+    enabled: !!run?.orchestrationId,
+  });
+
+  const agentNames = useMemo(
+    () => Object.fromEntries(agents.map((a) => [a.id, a.name])),
+    [agents],
+  );
+
   const { data: history = [] } = useQuery({
     queryKey: ["runs", id, "events"],
     queryFn: () => api.getRunEvents(id!),
     enabled: !!id,
   });
 
-  const { liveEvents, activity } = useRunStream(id, run?.status);
+  const { liveEvents, activity } = useRunStream(id, run?.status, { agentNames });
 
   const events = useMemo(() => {
     const map = new Map<number, (typeof history)[0]>();
@@ -49,6 +62,9 @@ export function RunDetailPage() {
 
   const assistantReply = useMemo(() => extractAssistantReply(events), [events]);
   const isLive = run ? !TERMINAL.has(run.status) : false;
+  const isOrchestration = !!run?.orchestrationId;
+
+  const orchestrationName = orchestrations.find((o) => o.id === run?.orchestrationId)?.name;
 
   if (isLoading || !run) return <p className="text-muted">Loading run…</p>;
 
@@ -63,6 +79,9 @@ export function RunDetailPage() {
         <div>
           <h1 className="hud-kicker text-base text-foreground">
             Run <span className="hud-mono text-accent">{run.id.slice(0, 8)}</span>
+            {isOrchestration && (
+              <span className="ml-2 text-muted">· {orchestrationName ?? "Orchestration"}</span>
+            )}
           </h1>
           <div className="mt-3 flex flex-wrap items-center gap-3">
             <Badge status={run.status} />
@@ -86,6 +105,8 @@ export function RunDetailPage() {
         <pre className="hud-mono mt-2 whitespace-pre-wrap text-sm">{inputMessage}</pre>
       </Card>
 
+      {isOrchestration && <OrchestrationRunView run={run} orchestrationName={orchestrationName} />}
+
       {(assistantReply || run.output != null) && (
         <Card>
           <CardTitle>Output</CardTitle>
@@ -106,7 +127,12 @@ export function RunDetailPage() {
         </Card>
       )}
 
-      <EventTimeline events={events} live={isLive} />
+      <Card>
+        <CardTitle>{isOrchestration ? "Parent timeline" : "Execution timeline"}</CardTitle>
+        <div className="mt-3">
+          <EventTimeline events={events} live={isLive} />
+        </div>
+      </Card>
     </div>
   );
 }

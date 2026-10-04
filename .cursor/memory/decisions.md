@@ -2,6 +2,16 @@
 
 Short record of architectural decisions. Append new entries at the top.
 
+## 2026-10-04 — Orchestration graphs: own DAG executor, not Strands Graph
+
+| Decision | Why |
+|----------|-----|
+| First-class `Orchestration` model + in-API DAG executor | Each graph node is a real `AgentRun` with persisted events and SSE; Strands Graph/Swarm do not create our rows or honor persist-before-stream |
+| Parent run + child runs via `parentRunId` | Operators inspect the live tree and per-node timelines; cancel parent stops all children |
+| Graph snapshot on parent `input` | Old runs render correctly if the definition changes later |
+| Topological waves with fail-fast | Simple parallel fan-out/fan-in; first node failure cancels remaining queued children |
+| `composeNodeInput` v1 (labeled upstream replies) | No custom per-edge prompt templates yet; keeps Slice E (supervisor) out of scope |
+
 ## 2026-10-03 — Root `.env` for Prisma CLI
 
 | Decision | Why |
