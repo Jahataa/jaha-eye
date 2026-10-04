@@ -14,8 +14,12 @@
     "build": "turbo run build",
     "test": "turbo run test",
     "lint": "turbo run lint",
+    "local:start": "node scripts/local-dev.mjs start",
+    "local:stop": "node scripts/local-dev.mjs stop",
+    "local:status": "node scripts/local-dev.mjs status",
     "db:generate": "dotenv -e .env -- npm run generate -w @jaha-eye/database",
     "db:migrate": "dotenv -e .env -- npm run migrate -w @jaha-eye/database",
+    "db:migrate:deploy": "dotenv -e .env -- npm run migrate:deploy -w @jaha-eye/database",
     "db:push": "dotenv -e .env -- npm run push -w @jaha-eye/database",
     "db:seed": "dotenv -e .env -- npm run seed -w @jaha-eye/database"
   },

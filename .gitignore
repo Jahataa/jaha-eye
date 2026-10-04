@@ -1,6 +1,7 @@
 node_modules/
 dist/
 .turbo/
+.local-dev/
 .env
 .env.local
 apps/api/.env

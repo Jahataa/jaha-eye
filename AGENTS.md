@@ -51,12 +51,11 @@ A code change updates the matching doc in the same pass:
 ## Running locally
 
 ```bash
-docker compose up -d          # Postgres
-cp .env.example .env          # fill in OPENAI_API_KEY
-npm install
-npm run db:migrate
-npm run dev                   # API :4000, Web :5173
+npm run local:start           # Postgres + install + migrate + dev (API :4000, Web :5173)
+npm run local:stop            # stop dev servers + docker compose down
 ```
+
+Manual flow: `docker compose up -d`, copy `.env.example` → `.env`, `npm install`, `npm run db:migrate`, `npm run dev`.
 
 See [README.md](README.md) and [docs/](docs/README.md) for details.
 

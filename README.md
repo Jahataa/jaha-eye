@@ -9,23 +9,31 @@ jaha-eye is a **control plane**: you define agents (model, prompt, tools), start
 **Prerequisites:** Node.js 22+, Docker
 
 ```bash
-# 1. Start Postgres
-docker compose up -d
+npm run local:start    # bootstrap Postgres, deps, migrations, and dev servers
+npm run local:stop     # stop dev servers and Postgres
+```
 
-# 2. Configure environment
-cp .env.example .env
-# Edit .env — set OPENAI_API_KEY (and optionally OPENAI_BASE_URL for local models)
+Or use OS wrappers:
 
-# 3. Install and migrate
-npm install
-npm run db:migrate
-
-# 4. Start dev servers
-npm run dev
+```bash
+./scripts/start        # Mac/Linux
+scripts\start.cmd      # Windows
 ```
 
 - **Web UI:** http://localhost:5173
 - **API:** http://localhost:4000
+
+Check status or logs: `npm run local:status` and `.local-dev/dev.log`.
+
+### Advanced (manual steps)
+
+```bash
+docker compose up -d
+cp .env.example .env    # set OPENAI_API_KEY (and optionally OPENAI_BASE_URL)
+npm install
+npm run db:migrate      # use when creating new Prisma migrations
+npm run dev
+```
 
 ## Documentation
 
