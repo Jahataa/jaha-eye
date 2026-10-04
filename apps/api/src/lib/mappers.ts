@@ -47,12 +47,24 @@ export function mapRun(run: AgentRun): SharedRun {
   };
 }
 
-export function mapRunChild(run: Pick<AgentRun, "id" | "agentId" | "graphNodeId" | "status">): RunChildSummary {
+export function mapRunChild(
+  run: Pick<AgentRun, "id" | "agentId" | "graphNodeId" | "status" | "input">,
+  outputReply?: string | null,
+  outputVariables?: Record<string, string>,
+): RunChildSummary {
+  const inputRecord =
+    typeof run.input === "object" && run.input !== null
+      ? (run.input as { message?: string })
+      : null;
+
   return {
     id: run.id,
     agentId: run.agentId,
     graphNodeId: run.graphNodeId,
     status: run.status,
+    inputMessage: inputRecord?.message,
+    outputReply: outputReply ?? undefined,
+    outputVariables,
   };
 }
 

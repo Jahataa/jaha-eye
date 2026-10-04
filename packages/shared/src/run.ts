@@ -42,6 +42,9 @@ export const RunChildSummarySchema = z.object({
   agentId: z.string().uuid().nullable(),
   graphNodeId: z.string().nullable(),
   status: RunStatusSchema,
+  inputMessage: z.string().optional(),
+  outputReply: z.string().optional(),
+  outputVariables: z.record(z.string()).optional(),
 });
 
 export type RunChildSummary = z.infer<typeof RunChildSummarySchema>;

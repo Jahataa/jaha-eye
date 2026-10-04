@@ -1,8 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
   assertDag,
+  buildNodeMessage,
   composeNodeInput,
   DagValidationError,
+  MissingTemplateVariableError,
+  resolveEntryNodeMessage,
+  resolveInputTemplate,
+  resolveNodeSystemPrompt,
   topologicalWaves,
   type OrchestrationGraph,
 } from "./orchestration.js";
@@ -94,21 +99,131 @@ describe("topologicalWaves", () => {
 });
 
 describe("composeNodeInput", () => {
-  it("returns the original message when there are no dependencies", () => {
-    expect(composeNodeInput("Hello", [])).toBe("Hello");
+  it("returns empty string when there are no dependencies", () => {
+    expect(composeNodeInput([])).toBe("");
   });
 
-  it("appends labeled upstream outputs", () => {
-    const result = composeNodeInput("Start", [
+  it("joins upstream assistant replies with blank lines", () => {
+    const result = composeNodeInput([
       {
         nodeId: "a",
         agentId: "00000000-0000-4000-8000-000000000001",
         output: "First reply",
       },
+      {
+        nodeId: "b",
+        agentId: "00000000-0000-4000-8000-000000000002",
+        output: "Second reply",
+      },
     ]);
 
-    expect(result).toContain("Start");
-    expect(result).toContain("--- Output from node a");
-    expect(result).toContain("First reply");
+    expect(result).toBe("First reply\n\nSecond reply");
+    expect(result).not.toContain("--- Output from node");
+  });
+});
+
+describe("resolveInputTemplate", () => {
+  it("replaces ${VarName} placeholders", () => {
+    expect(
+      resolveInputTemplate("What time is currently in ${City}?", { City: "London" }),
+    ).toBe("What time is currently in London?");
+  });
+
+  it("throws when a referenced variable is missing", () => {
+    expect(() => resolveInputTemplate("Hello ${Missing}", {})).toThrow(MissingTemplateVariableError);
+    expect(() => resolveInputTemplate("Hello ${Missing}", {})).toThrow(
+      'Variable "Missing" is not set',
+    );
+  });
+});
+
+describe("resolveEntryNodeMessage", () => {
+  it("prefers orchestration input over agent default", () => {
+    expect(resolveEntryNodeMessage("Orchestration msg", "Agent default")).toBe("Orchestration msg");
+  });
+
+  it("falls back to agent default when orchestration input is empty", () => {
+    expect(resolveEntryNodeMessage("", "Agent default")).toBe("Agent default");
+  });
+
+  it("falls back to Hello when both are empty", () => {
+    expect(resolveEntryNodeMessage("", null)).toBe("Hello");
+  });
+});
+
+describe("buildNodeMessage", () => {
+  const g = graph({
+    nodes: [
+      {
+        id: "country",
+        agentId: "00000000-0000-4000-8000-000000000001",
+        position: { x: 0, y: 0 },
+        outputVariable: "City",
+      },
+      {
+        id: "time",
+        agentId: "00000000-0000-4000-8000-000000000002",
+        position: { x: 100, y: 0 },
+        inputTemplate: "What time is currently in ${City}?",
+      },
+    ],
+    edges: [{ id: "e1", source: "country", target: "time" }],
+  });
+
+  it("uses entry fallback for entry nodes without a template", () => {
+    const country = g.nodes[0]!;
+    const message = buildNodeMessage(country, g, {
+      orchestrationInput: "",
+      agentDefaultRunInput: "What is the capital of England?",
+      variables: {},
+      nodeOutputs: new Map(),
+    });
+    expect(message).toBe("What is the capital of England?");
+  });
+
+  it("uses inputTemplate with variables for downstream nodes", () => {
+    const time = g.nodes[1]!;
+    const message = buildNodeMessage(time, g, {
+      orchestrationInput: "",
+      agentDefaultRunInput: null,
+      variables: { City: "London" },
+      nodeOutputs: new Map([["country", "London"]]),
+    });
+    expect(message).toBe("What time is currently in London?");
+  });
+
+  it("joins upstream replies when downstream has no template", () => {
+    const downstreamGraph = graph({
+      nodes: [
+        { id: "a", agentId: "00000000-0000-4000-8000-000000000001", position: { x: 0, y: 0 } },
+        { id: "b", agentId: "00000000-0000-4000-8000-000000000002", position: { x: 100, y: 0 } },
+      ],
+      edges: [{ id: "e1", source: "a", target: "b" }],
+    });
+    const downstream = downstreamGraph.nodes[1]!;
+    const message = buildNodeMessage(downstream, downstreamGraph, {
+      orchestrationInput: "ignored",
+      agentDefaultRunInput: null,
+      variables: {},
+      nodeOutputs: new Map([["a", "First"]]),
+    });
+    expect(message).toBe("First");
+  });
+});
+
+describe("resolveNodeSystemPrompt", () => {
+  it("uses agent default when node override is empty", () => {
+    expect(
+      resolveNodeSystemPrompt({ systemPrompt: null }, "Agent default prompt"),
+    ).toBe("Agent default prompt");
+  });
+
+  it("uses node override when set", () => {
+    expect(
+      resolveNodeSystemPrompt(
+        { systemPrompt: "Orchestration-only prompt" },
+        "Agent default prompt",
+      ),
+    ).toBe("Orchestration-only prompt");
   });
 });

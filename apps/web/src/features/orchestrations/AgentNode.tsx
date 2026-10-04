@@ -22,7 +22,7 @@ export function AgentNode({ data, selected }: NodeProps) {
       className={cn(
         "agent-node group relative min-w-[160px] border bg-card px-3 py-2 text-sm transition",
         statusClass,
-        selected && "ring-1 ring-accent/60",
+        (selected || nodeData.inspectorSelected) && "ring-1 ring-accent/60",
       )}
     >
       {showControls && (
@@ -38,10 +38,10 @@ export function AgentNode({ data, selected }: NodeProps) {
             className="h-6 px-2 py-0 text-[10px]"
             onClick={(event) => {
               event.stopPropagation();
-              nodeData.onEdit?.();
+              nodeData.onSwap?.();
             }}
           >
-            Edit
+            Swap
           </Button>
           <Button
             type="button"

@@ -1,5 +1,6 @@
 import type { FastifyPluginAsync } from "fastify";
 import { prisma } from "@jaha-eye/database";
+import { extractAssistantReply, type OrchestrationGraph } from "@jaha-eye/shared";
 import { mapEvent, mapRun, mapRunChild } from "../lib/mappers.js";
 import { cancelRun } from "../services/run-service.js";
 import { eventBus } from "../services/event-bus.js";
@@ -22,13 +23,45 @@ export const runRoutes: FastifyPluginAsync = async (app) => {
 
     const children = await prisma.agentRun.findMany({
       where: { parentRunId: run.id },
-      select: { id: true, agentId: true, graphNodeId: true, status: true },
+      select: { id: true, agentId: true, graphNodeId: true, status: true, input: true },
       orderBy: { createdAt: "asc" },
     });
 
+    const childIds = children.map((child) => child.id);
+    const childEvents =
+      childIds.length > 0
+        ? await prisma.agentRunEvent.findMany({
+            where: { runId: { in: childIds } },
+            orderBy: { sequence: "asc" },
+          })
+        : [];
+
+    const eventsByRunId = new Map<string, ReturnType<typeof mapEvent>[]>();
+    for (const event of childEvents) {
+      const mapped = mapEvent(event);
+      const list = eventsByRunId.get(event.runId) ?? [];
+      list.push(mapped);
+      eventsByRunId.set(event.runId, list);
+    }
+
+    const graph =
+      typeof run.input === "object" && run.input !== null
+        ? ((run.input as { graph?: OrchestrationGraph }).graph ?? null)
+        : null;
+
     return {
       ...mapRun(run),
-      children: children.map(mapRunChild),
+      children: children.map((child) => {
+        const events = eventsByRunId.get(child.id) ?? [];
+        const outputReply = extractAssistantReply(events);
+        const graphNode = graph?.nodes.find((node) => node.id === child.graphNodeId);
+        const outputVariables =
+          graphNode?.outputVariable && outputReply
+            ? { [graphNode.outputVariable]: outputReply }
+            : undefined;
+
+        return mapRunChild(child, outputReply, outputVariables);
+      }),
     };
   });
 

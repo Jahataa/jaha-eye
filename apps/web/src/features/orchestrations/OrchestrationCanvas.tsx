@@ -48,9 +48,10 @@ export function OrchestrationCanvas({
 
   const onSelectionChange = useCallback(
     ({ nodes: selected }: { nodes: Node[] }) => {
+      if (readOnly) return;
       onSelectNode?.(selected[0]?.id ?? null);
     },
-    [onSelectNode],
+    [readOnly, onSelectNode],
   );
 
   const flowNodes = useMemo(() => nodes, [nodes]);
@@ -66,6 +67,8 @@ export function OrchestrationCanvas({
         onConnect={readOnly ? undefined : handleConnect}
         onNodeDragStop={(_, node) => onNodeDragStop?.(node as Node<AgentNodeData>)}
         onSelectionChange={onSelectionChange}
+        onNodeClick={(_, node) => onSelectNode?.(node.id)}
+        onPaneClick={() => onSelectNode?.(null)}
         nodesDraggable={!readOnly}
         nodesConnectable={!readOnly}
         elementsSelectable

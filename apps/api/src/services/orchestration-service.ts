@@ -1,9 +1,10 @@
 import { prisma, type Prisma } from "@jaha-eye/database";
 import {
   assertDag,
-  composeNodeInput,
+  buildNodeMessage,
   extractAssistantReply,
-  getUpstreamNodeIds,
+  MissingTemplateVariableError,
+  resolveNodeSystemPrompt,
   sinkNodeIds,
   topologicalWaves,
   type OrchestrationGraph,
@@ -63,6 +64,7 @@ async function executeNode(
   nodeId: string,
   originalMessage: string,
   nodeOutputs: Map<string, string>,
+  variables: Map<string, string>,
 ): Promise<{ nodeId: string; output: string }> {
   if (isCancelled(parentRunId)) {
     throw new OrchestrationCancelledError();
@@ -83,23 +85,28 @@ async function executeNode(
     agentId: node.agentId,
   });
 
-  const upstreamIds = getUpstreamNodeIds(graph, nodeId);
-  const dependencyOutputs = upstreamIds.map((upstreamId) => {
-    const upstreamNode = graph.nodes.find((entry) => entry.id === upstreamId);
-    if (!upstreamNode) {
-      throw new Error(`Upstream node not found: ${upstreamId}`);
-    }
-    return {
-      nodeId: upstreamId,
-      agentId: upstreamNode.agentId,
-      output: nodeOutputs.get(upstreamId) ?? "",
-    };
-  });
-
-  const message =
-    upstreamIds.length === 0
-      ? originalMessage
-      : composeNodeInput(originalMessage, dependencyOutputs);
+  let message: string;
+  try {
+    message = buildNodeMessage(node, graph, {
+      orchestrationInput: originalMessage,
+      agentDefaultRunInput: agent.defaultRunInput,
+      variables: Object.fromEntries(variables),
+      nodeOutputs,
+    });
+  } catch (error) {
+    const errorMessage =
+      error instanceof MissingTemplateVariableError
+        ? error.message
+        : error instanceof Error
+          ? error.message
+          : "Failed to build node message";
+    await persistParentEvent(parentRunId, "NODE_ERROR", {
+      nodeId,
+      agentId: node.agentId,
+      message: errorMessage,
+    });
+    throw new Error(errorMessage);
+  }
 
   const childRun = await prisma.agentRun.create({
     data: {
@@ -113,7 +120,10 @@ async function executeNode(
     },
   });
 
-  await executeRun(childRun.id, mapAgent(agent), message);
+  const definition = mapAgent(agent);
+  definition.systemPrompt = resolveNodeSystemPrompt(node, definition.systemPrompt);
+
+  await executeRun(childRun.id, definition, message);
 
   const completedChild = await prisma.agentRun.findUniqueOrThrow({
     where: { id: childRun.id },
@@ -135,10 +145,20 @@ async function executeNode(
   }
 
   const reply = (await getChildReply(childRun.id)) ?? "";
+
+  if (node.outputVariable) {
+    variables.set(node.outputVariable, reply);
+  }
+
+  const outputVariables = node.outputVariable
+    ? { [node.outputVariable]: reply }
+    : undefined;
+
   await persistParentEvent(parentRunId, "NODE_FINISHED", {
     nodeId,
     agentId: node.agentId,
     output: reply,
+    ...(outputVariables ? { variables: outputVariables } : {}),
   });
 
   return { nodeId, output: reply };
@@ -175,6 +195,7 @@ export async function executeOrchestrationRun(
 
     const waves = topologicalWaves(graph);
     const nodeOutputs = new Map<string, string>();
+    const variables = new Map<string, string>();
 
     for (const wave of waves) {
       if (isCancelled(parentRunId)) {
@@ -189,7 +210,15 @@ export async function executeOrchestrationRun(
       try {
         const results = await Promise.all(
           wave.map((nodeId) =>
-            executeNode(parentRunId, orchestrationId, graph, nodeId, message, nodeOutputs),
+            executeNode(
+              parentRunId,
+              orchestrationId,
+              graph,
+              nodeId,
+              message,
+              nodeOutputs,
+              variables,
+            ),
           ),
         );
         for (const result of results) {

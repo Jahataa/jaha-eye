@@ -11,12 +11,17 @@ export type AgentNodeData = {
   agentId: string;
   agentName: string;
   agentSlug: string;
+  outputVariable?: string | null;
+  inputTemplate?: string | null;
+  systemPrompt?: string | null;
+  /** Run-detail canvas: highlight when selected in inspector (not React Flow selected) */
+  inspectorSelected?: boolean;
   status?: string;
   /** Editor-only: show hover controls and agent swap picker */
   editable?: boolean;
   isEditing?: boolean;
   agentOptions?: AgentOption[];
-  onEdit?: () => void;
+  onSwap?: () => void;
   onDelete?: () => void;
   onAgentChange?: (agentId: string) => void;
 };
@@ -35,6 +40,9 @@ export function graphToFlow(
         agentId: node.agentId,
         agentName: agent?.name ?? node.agentId.slice(0, 8),
         agentSlug: agent?.slug ?? "unknown",
+        outputVariable: node.outputVariable ?? null,
+        inputTemplate: node.inputTemplate ?? null,
+        systemPrompt: node.systemPrompt ?? null,
       },
     };
   });
@@ -55,6 +63,9 @@ export function flowToGraph(nodes: Node<AgentNodeData>[], edges: Edge[]): Orches
       id: node.id,
       agentId: node.data.agentId,
       position: node.position,
+      outputVariable: node.data.outputVariable ?? null,
+      inputTemplate: node.data.inputTemplate ?? null,
+      systemPrompt: node.data.systemPrompt ?? null,
     })),
     edges: edges.map((edge) => ({
       id: edge.id,

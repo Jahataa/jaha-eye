@@ -2,6 +2,15 @@
 
 Short record of architectural decisions. Append new entries at the top.
 
+## 2026-10-04 — Orchestration per-node variables and input templates
+
+| Decision | Why |
+|----------|-----|
+| `outputVariable` + `inputTemplate` on graph nodes | Downstream agents receive templated user messages (e.g. `What time in ${City}?`) instead of raw upstream reply passthrough only |
+| Shared `buildNodeMessage` / `resolveInputTemplate` in `@jaha-eye/shared` | Same message rules for API executor and UI preview; fail node on missing `${Var}` at runtime |
+| Child summaries enriched on `GET /api/runs/:id` | Run-detail node inspector shows consumed input and reply without per-node fetches |
+| System prompt stays agent-level only | Inspector reads linked agent; no per-node prompt override in Phase 1 |
+
 ## 2026-10-04 — Global LLM Settings in Postgres
 
 | Decision | Why |
@@ -20,7 +29,7 @@ Short record of architectural decisions. Append new entries at the top.
 | Parent run + child runs via `parentRunId` | Operators inspect the live tree and per-node timelines; cancel parent stops all children |
 | Graph snapshot on parent `input` | Old runs render correctly if the definition changes later |
 | Topological waves with fail-fast | Simple parallel fan-out/fan-in; first node failure cancels remaining queued children |
-| `composeNodeInput` v1 (labeled upstream replies) | No custom per-edge prompt templates yet; keeps Slice E (supervisor) out of scope |
+| `composeNodeInput` v2 (upstream reply only) | Downstream nodes receive prior assistant text only; entry nodes fall back to agent `defaultRunInput` when orchestration input is empty |
 
 ## 2026-10-03 — Root `.env` for Prisma CLI
 

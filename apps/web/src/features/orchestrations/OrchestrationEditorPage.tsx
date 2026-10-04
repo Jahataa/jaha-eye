@@ -18,6 +18,7 @@ import { Label } from "../../components/ui/label";
 import { Textarea } from "../../components/ui/textarea";
 import { Card } from "../../components/ui/card";
 import { OrchestrationCanvas, connectEdge } from "./OrchestrationCanvas";
+import { OrchestrationNodeInspector } from "./OrchestrationNodeInspector";
 import { flowToGraph, graphToFlow, newNodeId, type AgentNodeData } from "./graph-utils";
 
 const BLANK_DEFAULTS = {
@@ -154,12 +155,12 @@ export function OrchestrationEditorPage() {
 
   const handleSelectNode = useCallback((nodeId: string | null) => {
     setSelectedNodeId(nodeId);
-    setEditingNodeId((current) => (nodeId && current === nodeId ? current : null));
+    setEditingNodeId(null);
   }, []);
 
-  const handleEditNode = useCallback((nodeId: string) => {
+  const handleSwapNode = useCallback((nodeId: string) => {
     setSelectedNodeId(nodeId);
-    setEditingNodeId(nodeId);
+    setEditingNodeId((current) => (current === nodeId ? null : nodeId));
   }, []);
 
   useEffect(() => {
@@ -246,29 +247,47 @@ export function OrchestrationEditorPage() {
     () =>
       nodes.map((node) => ({
         ...node,
-        selected: node.id === selectedNodeId,
         data: {
           ...node.data,
           editable: true,
           isEditing: node.id === editingNodeId,
           agentOptions: node.id === editingNodeId ? agentOptions : undefined,
-          onEdit: () => handleEditNode(node.id),
+          onSwap: () => handleSwapNode(node.id),
           onDelete: () => removeNode(node.id),
           onAgentChange: (agentId: string) => swapNodeAgent(node.id, agentId),
         },
       })),
     [
       nodes,
-      selectedNodeId,
       editingNodeId,
       agentOptions,
-      handleEditNode,
+      handleSwapNode,
       removeNode,
       swapNodeAgent,
     ],
   );
 
   const selectedNode = nodes.find((n) => n.id === selectedNodeId);
+  const selectedGraphNode = selectedNodeId
+    ? getGraph().nodes.find((node) => node.id === selectedNodeId)
+    : undefined;
+  const selectedAgent = selectedNode
+    ? agents.find((agent) => agent.id === selectedNode.data.agentId)
+    : undefined;
+
+  const updateSelectedNodeField = useCallback(
+    (field: "outputVariable" | "inputTemplate" | "systemPrompt", value: string | null) => {
+      if (!selectedNodeId) return;
+      setNodes((nds) =>
+        nds.map((node) =>
+          node.id === selectedNodeId
+            ? { ...node, data: { ...node.data, [field]: value } }
+            : node,
+        ),
+      );
+    },
+    [selectedNodeId, setNodes],
+  );
 
   return (
     <div className="flex h-[calc(100vh-6.5rem)] flex-col gap-4">
@@ -351,7 +370,7 @@ export function OrchestrationEditorPage() {
           />
         </div>
 
-        <Card className="flex w-72 shrink-0 flex-col gap-3 overflow-y-auto p-4">
+        <Card className="flex w-80 shrink-0 flex-col gap-3 overflow-y-auto p-4">
           <div>
             <Label>Name</Label>
             <Input value={name} onChange={(e) => setName(e.target.value)} />
@@ -372,32 +391,45 @@ export function OrchestrationEditorPage() {
               placeholder="Message used when you click Run"
             />
           </div>
-          {selectedNode && (
+          {selectedNode && selectedGraphNode && (
             <div className="border-t border-border pt-3">
-              <p className="hud-kicker mb-2">Selected node</p>
-              <p className="font-semibold text-sm">{selectedNode.data.agentName}</p>
-              <p className="hud-mono text-xs text-muted">{selectedNode.data.agentSlug}</p>
-              <div className="mt-3 flex gap-2">
-                <Button
-                  variant="outline"
-                  className="flex-1"
-                  onClick={() => handleEditNode(selectedNode.id)}
-                >
-                  Edit
-                </Button>
-                <Button
-                  variant="danger"
-                  className="flex-1"
-                  onClick={() => removeNode(selectedNode.id)}
-                >
-                  Delete
-                </Button>
+              <div className="mb-3 flex items-center justify-between gap-2">
+                <p className="hud-kicker">Node inspector</p>
+                <div className="flex gap-1">
+                  <Button
+                    variant="outline"
+                    className="h-7 px-2 text-xs"
+                    onClick={() => handleSwapNode(selectedNode.id)}
+                  >
+                    Swap agent
+                  </Button>
+                  <Button
+                    variant="danger"
+                    className="h-7 px-2 text-xs"
+                    onClick={() => removeNode(selectedNode.id)}
+                  >
+                    Delete
+                  </Button>
+                </div>
               </div>
               {editingNodeId === selectedNode.id && (
-                <p className="hud-mono mt-2 text-[10px] text-muted">
+                <p className="hud-mono mb-2 text-[10px] text-muted">
                   Choose an agent on the canvas or press Delete to remove.
                 </p>
               )}
+              <OrchestrationNodeInspector
+                mode="editor"
+                node={selectedGraphNode}
+                graph={getGraph()}
+                agent={selectedAgent}
+                defaultRunInput={defaultRunInput}
+                outputVariable={selectedNode.data.outputVariable ?? null}
+                inputTemplate={selectedNode.data.inputTemplate ?? null}
+                systemPrompt={selectedNode.data.systemPrompt ?? null}
+                onOutputVariableChange={(value) => updateSelectedNodeField("outputVariable", value)}
+                onInputTemplateChange={(value) => updateSelectedNodeField("inputTemplate", value)}
+                onSystemPromptChange={(value) => updateSelectedNodeField("systemPrompt", value)}
+              />
             </div>
           )}
         </Card>

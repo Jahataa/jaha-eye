@@ -18,7 +18,8 @@
 - **Left palette** — active agents from `GET /api/agents`; click or drag onto canvas to add nodes.
 - **Canvas** — connect source → target edges; drag nodes to position; select and remove nodes.
 - **Right panel** — name, slug, description, default run input; Save / Run (same pattern as agent editor).
-- Graph JSON (nodes, edges, positions) is saved with the orchestration definition.
+- **Node inspector** — when a canvas node is selected, the panel shows agent link, read-only system prompt, editable output variable and input template, upstream variable hints, and an effective message preview.
+- Graph JSON (nodes, edges, positions, per-node `outputVariable` / `inputTemplate`) is saved with the orchestration definition.
 
 ## Run detail (orchestration parent)
 
@@ -26,7 +27,7 @@ When `orchestrationId` is set on the run:
 
 - **Live canvas** — read-only graph from the run input snapshot; node border reflects child run status.
 - **Run tree** — parent row plus one row per graph node; click to select.
-- **Node timeline** — selected child’s `EventTimeline` with SSE; parent timeline remains below.
+- **Node inspector** — Summary tab shows consumed input, assistant reply, and variables set; Events tab shows the selected child’s `EventTimeline` with SSE. Parent timeline remains below the graph area.
 - **Stop** — cancels the whole graph via `POST /api/runs/:id/cancel`.
 
 Single-agent runs keep the original layout (no canvas).

@@ -3,11 +3,24 @@ import { z } from "zod";
 export const OrchestrationStatusSchema = z.enum(["active", "disabled"]);
 export type OrchestrationStatus = z.infer<typeof OrchestrationStatusSchema>;
 
+const OUTPUT_VARIABLE_REGEX = /^[A-Za-z_][A-Za-z0-9_]*$/;
+const TEMPLATE_VAR_REGEX = /\$\{([A-Za-z_][A-Za-z0-9_]*)\}/g;
+
 export const GraphNodeSchema = z.object({
   id: z.string().min(1),
   agentId: z.string().uuid(),
   position: z.object({ x: z.number(), y: z.number() }),
+  outputVariable: z
+    .string()
+    .regex(OUTPUT_VARIABLE_REGEX)
+    .optional()
+    .nullable(),
+  inputTemplate: z.string().optional().nullable(),
+  /** Overrides the linked agent's system prompt for this orchestration node only. */
+  systemPrompt: z.string().optional().nullable(),
 });
+
+export type GraphNode = z.infer<typeof GraphNodeSchema>;
 
 export const GraphEdgeSchema = z.object({
   id: z.string().min(1),
@@ -150,17 +163,91 @@ export function sinkNodeIds(graph: OrchestrationGraph): string[] {
 }
 
 export function composeNodeInput(
-  original: string,
   dependencyOutputs: Array<{ nodeId: string; agentId: string; output: string }>,
 ): string {
-  if (dependencyOutputs.length === 0) {
-    return original;
+  return dependencyOutputs.map((dep) => dep.output).join("\n\n");
+}
+
+export class MissingTemplateVariableError extends Error {
+  constructor(public variableName: string) {
+    super(`Variable "${variableName}" is not set`);
+    this.name = "MissingTemplateVariableError";
+  }
+}
+
+export function resolveInputTemplate(
+  template: string,
+  variables: Record<string, string>,
+): string {
+  return template.replace(TEMPLATE_VAR_REGEX, (_, varName: string) => {
+    const value = variables[varName];
+    if (value === undefined) {
+      throw new MissingTemplateVariableError(varName);
+    }
+    return value;
+  });
+}
+
+export function resolveNodeSystemPrompt(
+  node: Pick<GraphNode, "systemPrompt">,
+  agentSystemPrompt: string,
+): string {
+  const override = node.systemPrompt?.trim();
+  return override || agentSystemPrompt;
+}
+
+export function resolveEntryNodeMessage(
+  orchestrationMessage: string,
+  agentDefaultRunInput: string | null,
+): string {
+  const trimmedOrchestration = orchestrationMessage.trim();
+  if (trimmedOrchestration) return trimmedOrchestration;
+
+  const trimmedAgentDefault = agentDefaultRunInput?.trim();
+  if (trimmedAgentDefault) return trimmedAgentDefault;
+
+  return "Hello";
+}
+
+export interface BuildNodeMessageContext {
+  orchestrationInput: string;
+  agentDefaultRunInput: string | null;
+  variables: Record<string, string>;
+  nodeOutputs: Map<string, string>;
+}
+
+export function buildNodeMessage(
+  node: GraphNode,
+  graph: OrchestrationGraph,
+  context: BuildNodeMessageContext,
+): string {
+  const upstreamIds = getUpstreamNodeIds(graph, node.id);
+  const template = node.inputTemplate?.trim();
+
+  if (upstreamIds.length === 0) {
+    if (template) {
+      return resolveInputTemplate(template, context.variables);
+    }
+    return resolveEntryNodeMessage(context.orchestrationInput, context.agentDefaultRunInput);
   }
 
-  const sections = dependencyOutputs.map(
-    (dep) => `--- Output from node ${dep.nodeId} (agent ${dep.agentId}) ---\n${dep.output}`,
-  );
-  return `${original}\n\n${sections.join("\n\n")}`;
+  if (template) {
+    return resolveInputTemplate(template, context.variables);
+  }
+
+  const dependencyOutputs = upstreamIds.map((upstreamId) => {
+    const upstreamNode = graph.nodes.find((entry) => entry.id === upstreamId);
+    if (!upstreamNode) {
+      throw new Error(`Upstream node not found: ${upstreamId}`);
+    }
+    return {
+      nodeId: upstreamId,
+      agentId: upstreamNode.agentId,
+      output: context.nodeOutputs.get(upstreamId) ?? "",
+    };
+  });
+
+  return composeNodeInput(dependencyOutputs);
 }
 
 export const OrchestrationDefinitionSchema = z.object({
@@ -191,7 +278,7 @@ export const UpdateOrchestrationSchema = CreateOrchestrationSchema.partial();
 export type UpdateOrchestrationInput = z.infer<typeof UpdateOrchestrationSchema>;
 
 export const StartOrchestrationSchema = z.object({
-  input: z.string().default("Hello"),
+  input: z.string().default(""),
 });
 
 export type StartOrchestrationInput = z.infer<typeof StartOrchestrationSchema>;
@@ -201,5 +288,5 @@ export function resolveDefaultOrchestrationInput(orchestration: {
 }): string {
   const trimmed = orchestration.defaultRunInput?.trim();
   if (trimmed) return trimmed;
-  return "Hello";
+  return "";
 }

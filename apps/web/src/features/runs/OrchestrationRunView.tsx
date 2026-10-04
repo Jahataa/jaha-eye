@@ -4,8 +4,10 @@ import type { AgentRunDetail, OrchestrationGraph, RunChildSummary } from "@jaha-
 import { api } from "../../lib/api";
 import { Card, CardTitle } from "../../components/ui/card";
 import { Badge } from "../../components/ui/badge";
+import { Button } from "../../components/ui/button";
 import { EventTimeline } from "../../components/events/EventTimeline";
 import { OrchestrationCanvas } from "../orchestrations/OrchestrationCanvas";
+import { OrchestrationNodeInspector } from "../orchestrations/OrchestrationNodeInspector";
 import { graphToFlow, type AgentNodeData } from "../orchestrations/graph-utils";
 import { useRunStream } from "../../hooks/use-run-stream";
 import type { Node, Edge } from "@xyflow/react";
@@ -52,8 +54,11 @@ type OrchestrationRunViewProps = {
   orchestrationName?: string;
 };
 
+type InspectorTab = "summary" | "events";
+
 export function OrchestrationRunView({ run, orchestrationName }: OrchestrationRunViewProps) {
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [inspectorTab, setInspectorTab] = useState<InspectorTab>("summary");
 
   const { data: agents = [] } = useQuery({ queryKey: ["agents"], queryFn: api.getAgents });
   const { data: orchestrations = [] } = useQuery({
@@ -92,14 +97,31 @@ export function OrchestrationRunView({ run, orchestrationName }: OrchestrationRu
     return {
       nodes: flow.nodes.map((node) => ({
         ...node,
-        data: { ...node.data, status: nodeStatuses.get(node.id) },
-        selected: node.id === selectedNodeId,
+        data: {
+          ...node.data,
+          status: nodeStatuses.get(node.id),
+          inspectorSelected: node.id === selectedNodeId,
+        },
       })),
       edges: flow.edges,
     };
   }, [graph, agentLookup, nodeStatuses, selectedNodeId]);
 
   const selectedChild = selectedNodeId ? childMap.get(selectedNodeId) : undefined;
+  const selectedGraphNode = selectedNodeId
+    ? graph?.nodes.find((node) => node.id === selectedNodeId)
+    : undefined;
+  const selectedAgent = selectedChild?.agentId
+    ? agents.find((agent) => agent.id === selectedChild.agentId)
+    : undefined;
+
+  const handleSelectNode = (nodeId: string | null) => {
+    setSelectedNodeId((current) => {
+      if (current === nodeId) return current;
+      return nodeId;
+    });
+    if (nodeId) setInspectorTab("summary");
+  };
 
   const isLive = !TERMINAL.has(run.status);
   const runningCount = isLive ? children.filter((c) => c.status === "running").length : 0;
@@ -130,7 +152,7 @@ export function OrchestrationRunView({ run, orchestrationName }: OrchestrationRu
             <li className="border-b border-border/50 px-2 py-2">
               <button
                 type="button"
-                onClick={() => setSelectedNodeId(null)}
+                onClick={() => handleSelectNode(null)}
                 className="w-full text-left text-sm font-semibold hover:text-accent"
               >
                 Parent run
@@ -146,7 +168,7 @@ export function OrchestrationRunView({ run, orchestrationName }: OrchestrationRu
                 <li key={node.id} className="border-b border-border/50 last:border-b-0">
                   <button
                     type="button"
-                    onClick={() => setSelectedNodeId(node.id)}
+                    onClick={() => handleSelectNode(node.id)}
                     className="w-full px-2 py-2 text-left hover:bg-accent/5"
                   >
                     <span className="block pl-3 text-sm font-medium">{label}</span>
@@ -167,7 +189,7 @@ export function OrchestrationRunView({ run, orchestrationName }: OrchestrationRu
               nodes={flowGraph.nodes}
               edges={flowGraph.edges}
               readOnly
-              onSelectNode={setSelectedNodeId}
+              onSelectNode={handleSelectNode}
             />
           ) : (
             <p className="p-4 text-muted">Graph snapshot unavailable.</p>
@@ -177,26 +199,82 @@ export function OrchestrationRunView({ run, orchestrationName }: OrchestrationRu
         <Card className="hidden flex-col overflow-hidden lg:flex">
           <div className="border-b border-border p-3">
             <CardTitle className="text-xs">
-              {selectedChild ? "Node timeline" : "Parent timeline"}
+              {selectedChild ? "Node inspector" : "Run inspector"}
             </CardTitle>
+            {selectedChild && (
+              <div className="mt-2 flex gap-1">
+                <Button
+                  variant={inspectorTab === "summary" ? "default" : "outline"}
+                  className="h-7 flex-1 px-2 text-xs"
+                  onClick={() => setInspectorTab("summary")}
+                >
+                  Summary
+                </Button>
+                <Button
+                  variant={inspectorTab === "events" ? "default" : "outline"}
+                  className="h-7 flex-1 px-2 text-xs"
+                  onClick={() => setInspectorTab("events")}
+                >
+                  Events
+                </Button>
+              </div>
+            )}
           </div>
           <div className="flex-1 overflow-y-auto p-3">
-            {selectedChild ? (
-              <ChildTimeline runId={selectedChild.id} status={selectedChild.status} />
+            {selectedChild && selectedGraphNode && graph ? (
+              inspectorTab === "summary" ? (
+                <OrchestrationNodeInspector
+                  mode="run"
+                  node={selectedGraphNode}
+                  graph={graph}
+                  agent={selectedAgent}
+                  childSummary={selectedChild}
+                />
+              ) : (
+                <ChildTimeline runId={selectedChild.id} status={selectedChild.status} />
+              )
             ) : (
               <p className="text-sm text-muted">
-                Select a node to view its execution timeline, or see the parent timeline below.
+                Select a node to inspect its input, reply, and timeline.
               </p>
             )}
           </div>
         </Card>
       </div>
 
-      {selectedChild && (
+      {selectedChild && selectedGraphNode && graph && (
         <Card className="lg:hidden">
-          <CardTitle>Node timeline</CardTitle>
+          <div className="flex items-center justify-between gap-2">
+            <CardTitle>Node inspector</CardTitle>
+            <div className="flex gap-1">
+              <Button
+                variant={inspectorTab === "summary" ? "default" : "outline"}
+                className="h-7 px-2 text-xs"
+                onClick={() => setInspectorTab("summary")}
+              >
+                Summary
+              </Button>
+              <Button
+                variant={inspectorTab === "events" ? "default" : "outline"}
+                className="h-7 px-2 text-xs"
+                onClick={() => setInspectorTab("events")}
+              >
+                Events
+              </Button>
+            </div>
+          </div>
           <div className="mt-3">
-            <ChildTimeline runId={selectedChild.id} status={selectedChild.status} />
+            {inspectorTab === "summary" ? (
+              <OrchestrationNodeInspector
+                mode="run"
+                node={selectedGraphNode}
+                graph={graph}
+                agent={selectedAgent}
+                childSummary={selectedChild}
+              />
+            ) : (
+              <ChildTimeline runId={selectedChild.id} status={selectedChild.status} />
+            )}
           </div>
         </Card>
       )}
