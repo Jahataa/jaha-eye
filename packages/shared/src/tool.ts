@@ -21,7 +21,7 @@ export const BUILTIN_TOOL_CATALOG: BuiltinTool[] = [
   {
     id: "current_time",
     name: "Current Time",
-    description: "Returns the current date and time in ISO format",
+    description: "Returns the current date and time (UTC ISO plus human-readable local time)",
     category: "utility",
     risk: "safe",
     vended: false,

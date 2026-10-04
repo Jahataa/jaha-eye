@@ -41,3 +41,10 @@ export type CreateAgentInput = z.infer<typeof CreateAgentSchema>;
 
 export const UpdateAgentSchema = CreateAgentSchema.partial();
 export type UpdateAgentInput = z.infer<typeof UpdateAgentSchema>;
+
+/** Input sent when an operator clicks Run without typing a custom message. */
+export function resolveDefaultRunInput(agent: { defaultRunInput?: string | null }): string {
+  const trimmed = agent.defaultRunInput?.trim();
+  if (trimmed) return trimmed;
+  return "Hello";
+}

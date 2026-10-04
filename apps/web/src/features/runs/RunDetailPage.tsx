@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
+import { extractAssistantReply } from "@jaha-eye/shared";
 import { api } from "../../lib/api";
 import { Button } from "../../components/ui/button";
 import { Card, CardTitle } from "../../components/ui/card";
@@ -46,14 +47,15 @@ export function RunDetailPage() {
     },
   });
 
+  const assistantReply = useMemo(() => extractAssistantReply(events), [events]);
+  const isLive = run ? !TERMINAL.has(run.status) : false;
+
   if (isLoading || !run) return <p className="text-muted">Loading run…</p>;
 
   const inputMessage =
     typeof run.input === "object" && run.input !== null && "message" in run.input
       ? String((run.input as { message: string }).message)
       : JSON.stringify(run.input);
-
-  const isLive = !TERMINAL.has(run.status);
 
   return (
     <div className="space-y-6">
@@ -84,12 +86,16 @@ export function RunDetailPage() {
         <pre className="hud-mono mt-2 whitespace-pre-wrap text-sm">{inputMessage}</pre>
       </Card>
 
-      {run.output != null && (
+      {(assistantReply || run.output != null) && (
         <Card>
           <CardTitle>Output</CardTitle>
-          <pre className="hud-mono mt-2 whitespace-pre-wrap text-sm">
-            {JSON.stringify(run.output, null, 2)}
-          </pre>
+          {assistantReply ? (
+            <pre className="mt-2 whitespace-pre-wrap text-sm">{assistantReply}</pre>
+          ) : (
+            <pre className="hud-mono mt-2 whitespace-pre-wrap text-sm">
+              {JSON.stringify(run.output, null, 2)}
+            </pre>
+          )}
         </Card>
       )}
 

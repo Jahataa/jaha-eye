@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
-import type { BuiltinTool, RolePreset } from "@jaha-eye/shared";
+import { resolveDefaultRunInput, type BuiltinTool, type RolePreset } from "@jaha-eye/shared";
 import { api } from "../../lib/api";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -157,7 +157,7 @@ export function AgentEditorPage() {
         const saved = await saveMutation.mutateAsync();
         agentId = saved.id;
       }
-      const input = defaultRunInput || "Hello";
+      const input = resolveDefaultRunInput({ defaultRunInput });
       return api.startRun(agentId!, input);
     },
     onSuccess: (data) => navigate(`/runs/${data.runId}`),

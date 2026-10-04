@@ -6,7 +6,7 @@ Phase 1 ships six built-in tools: one custom and five from the Strands SDK vende
 
 | id | name | category | risk | source |
 |----|------|----------|------|--------|
-| `current_time` | Current Time | utility | safe | custom |
+| `current_time` | Current Time | utility | safe | custom — returns JSON with `isoUtc`, `local`, and `timezone` |
 | `calculator` | Calculator | utility | safe | custom |
 | `sleep` | Sleep | utility | safe | `@strands-agents/sdk/vended-tools/sleep` |
 | `notebook` | Notebook | planning | safe | `@strands-agents/sdk/vended-tools/notebook` |

@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
+import { resolveDefaultRunInput } from "@jaha-eye/shared";
 import { api } from "../../lib/api";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
@@ -48,7 +49,9 @@ export function AgentsPage() {
                 <Button
                   variant="outline"
                   disabled={agent.status === "disabled" || runMutation.isPending}
-                  onClick={() => runMutation.mutate({ id: agent.id, input: "What time is it?" })}
+                  onClick={() =>
+                    runMutation.mutate({ id: agent.id, input: resolveDefaultRunInput(agent) })
+                  }
                 >
                   Run
                 </Button>

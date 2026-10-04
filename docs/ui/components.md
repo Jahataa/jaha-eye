@@ -15,7 +15,7 @@
 | `components/dashboard/` | Instrument stat cards, active-run trace list |
 | `components/agents/` | Agent list cards |
 | `components/runs/` | Run table, run detail header |
-| `components/events/` | `EventTimeline` with vertical trace, cyan nodes, live scan row |
+| `components/events/` | `EventTimeline` with vertical trace, cyan nodes, live scan row; tool results shown inline |
 
 ## UI primitives (`components/ui/`)
 

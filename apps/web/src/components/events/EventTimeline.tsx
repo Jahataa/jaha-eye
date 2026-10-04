@@ -1,4 +1,4 @@
-import type { PersistedAgentEvent } from "@jaha-eye/shared";
+import { formatToolCallResult, type PersistedAgentEvent } from "@jaha-eye/shared";
 import { Card, CardTitle } from "../ui/card";
 import { cn } from "../../lib/utils";
 
@@ -17,7 +17,7 @@ function eventLabel(event: PersistedAgentEvent): string {
     case "TOOL_CALL_START":
       return `Tool call: ${String(event.payload.toolCallName ?? "unknown")}`;
     case "TOOL_CALL_RESULT":
-      return "Tool result received";
+      return formatToolCallResult(event.payload);
     case "TEXT_MESSAGE_START":
       return "Model response started";
     case "TEXT_MESSAGE_CONTENT":
