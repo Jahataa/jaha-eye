@@ -32,23 +32,13 @@ interface AgentRuntime {
 
 Do not use PostgreSQL LISTEN/NOTIFY as the primary high-frequency event bus.
 
-## Schedules (Phase 2)
+## Schedules
 
-Model schedules separately from runs:
+**Phase 1 (shipped):** UI-ticked local cron. The `Schedule` table stores jobs; the browser `ScheduleTicker` fires them while the dashboard is open. The API exposes CRUD plus `POST /api/schedules/:id/fire` with atomic slot claim — it starts runs through existing services and never executes Strands directly. Missed fires while the UI is closed are skipped.
 
-```json
-{
-  "agentId": "daily-news",
-  "enabled": true,
-  "type": "cron",
-  "expression": "0 8 * * *",
-  "timezone": "Europe/Sofia"
-}
-```
+**Phase 2 (remaining):** worker-ticked cron and webhooks so jobs fire when the UI is closed, with optional timezone-aware scheduling and missed-fire policy. Flow becomes `Schedule → create AgentRun → queue → worker`.
 
-Flow: `Schedule → create AgentRun → queue → worker`. The scheduler never executes the agent directly.
-
-Trigger types planned: cron, webhook, manual, agent-to-agent chain.
+Trigger types planned beyond Phase 1: webhook, agent-to-agent chain; persisted timezone as firing authority (Phase 1 shows IANA zone in the top bar for display only).
 
 ## Agent versioning (Phase 2)
 
@@ -119,14 +109,13 @@ Instrument Strands execution → OTel collector → Grafana / Jaeger / Langfuse.
 
 ## Database tables (future)
 
-Phase 1 core: `Agent`, `AgentRun`, `AgentRunEvent`, `Orchestration`.
+Phase 1 core: `Agent`, `AgentRun`, `AgentRunEvent`, `Orchestration`, `Schedule`, `AppSettings`.
 
 Additional tables planned:
 
 | Table | Phase |
 |-------|-------|
 | `agent_versions` | 2 |
-| `agent_schedules` | 2 |
 | `agent_approvals` | 2 |
 | `agent_tool_executions` | 2 |
 | `agent_sessions`, `agent_messages` | 2+ (product memory) |
@@ -140,7 +129,7 @@ See [docs/src/database.md](../src/database.md) for the current schema.
 
 | Route | Phase | Purpose |
 |-------|-------|---------|
-| `/schedules` | 2 | Cron and webhook schedule management |
+| `/schedules` | 1 | UI-ticked cron schedule management (Phase 2 adds worker/webhook triggers) |
 | `/approvals` | 2 | Pending approval queue |
 | `/settings` | 1 | Global LLM settings (API key, base URL, default model) |
 | Model registry | 2 | Multi-provider model catalog beyond Settings defaults |

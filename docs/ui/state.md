@@ -11,6 +11,8 @@
 | Runs list | `['runs']` | `GET /api/runs` |
 | Run detail | `['runs', id]` | `GET /api/runs/:id` (includes optional `children[]` for orchestration parents) |
 | Run events (history) | `['runs', id, 'events']` | `GET /api/runs/:id/events` |
+| Schedules list | `['schedules']` | `GET /api/schedules` |
+| Schedule detail | `['schedules', id]` | `GET /api/schedules/:id` |
 | LLM settings | `['settings']` | `GET /api/settings` |
 
 Mutations invalidate relevant queries after create/update/delete/run.

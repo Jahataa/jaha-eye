@@ -43,7 +43,7 @@ Prisma schema is the source of truth.
 | graphNodeId | string? | Canvas node id for child runs |
 | parentRunId | uuid? | Parent orchestration run for child rows; null on top-level runs |
 | status | enum | queued, running, waiting, completed, failed, cancelled |
-| trigger | enum | manual (Phase 1) |
+| trigger | enum | `manual` \| `schedule` (parent runs only; orchestration child runs stay `manual`) |
 | input | json | Run input message (parent includes graph snapshot) |
 | output | json? | Final output |
 | error | json? | Error details |
@@ -59,6 +59,23 @@ Prisma schema is the source of truth.
 | type | string | AG-UI event type |
 | timestamp | datetime | Event time |
 | payload | json | Full event payload |
+
+### Schedule
+
+Cron job targeting an agent or orchestration (separate table so one entity can have many jobs).
+
+| Field | Type | Notes |
+|-------|------|-------|
+| id | uuid | Primary key |
+| name | string? | Optional display name |
+| enabled | boolean | Default true |
+| targetType | enum | `agent` \| `orchestration` |
+| agentId | uuid? | FK → Agent; cascade delete |
+| orchestrationId | uuid? | FK → Orchestration; cascade delete |
+| expression | string | 5-field cron (`min hour day month weekday`) |
+| input | string? | Override run message; empty uses entity `defaultRunInput` |
+| lastFiredAt | datetime? | Last successful fire time |
+| lastFiredSlot | string? | Claimed local minute slot (`YYYY-MM-DDTHH:mm`) for idempotency |
 
 ### AppSettings
 

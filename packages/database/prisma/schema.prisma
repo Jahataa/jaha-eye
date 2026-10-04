@@ -23,6 +23,12 @@ enum RunStatus {
 
 enum RunTrigger {
   manual
+  schedule
+}
+
+enum ScheduleTargetType {
+  agent
+  orchestration
 }
 
 enum OrchestrationStatus {
@@ -47,7 +53,8 @@ model Agent {
   createdAt         DateTime    @default(now()) @map("created_at")
   updatedAt         DateTime    @updatedAt @map("updated_at")
 
-  runs AgentRun[]
+  runs      AgentRun[]
+  schedules Schedule[]
 
   @@map("agents")
 }
@@ -63,7 +70,8 @@ model Orchestration {
   createdAt       DateTime            @default(now()) @map("created_at")
   updatedAt       DateTime            @updatedAt @map("updated_at")
 
-  runs AgentRun[]
+  runs      AgentRun[]
+  schedules Schedule[]
 
   @@map("orchestrations")
 }
@@ -110,6 +118,29 @@ model AgentRunEvent {
   @@unique([runId, sequence])
   @@index([runId])
   @@map("agent_run_events")
+}
+
+model Schedule {
+  id              String             @id @default(uuid())
+  name            String?
+  enabled         Boolean            @default(true)
+  targetType      ScheduleTargetType @map("target_type")
+  agentId         String?            @map("agent_id")
+  orchestrationId String?            @map("orchestration_id")
+  expression      String
+  input           String?
+  lastFiredAt     DateTime?          @map("last_fired_at")
+  lastFiredSlot   String?            @map("last_fired_slot")
+  createdAt       DateTime           @default(now()) @map("created_at")
+  updatedAt       DateTime           @updatedAt @map("updated_at")
+
+  agent         Agent?         @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  orchestration Orchestration? @relation(fields: [orchestrationId], references: [id], onDelete: Cascade)
+
+  @@index([agentId])
+  @@index([orchestrationId])
+  @@index([enabled])
+  @@map("schedules")
 }
 
 model AppSettings {

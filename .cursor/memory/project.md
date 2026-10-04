@@ -23,11 +23,13 @@
 - Role presets (General, Researcher, API operator, Planner)
 - OpenAI-compatible default model provider
 - Global LLM Settings page (`/settings`) — API key, base URL, default model/temperature
+- UI-ticked cron schedules (`/schedules`, agent/orchestration editor sections) — fires while the dashboard is open; missed times skipped
 
 ## Out of scope (later phases)
 
 - Redis, BullMQ, separate worker
-- Cron schedules, retries, concurrency limits
+- Server-side scheduler / worker-ticked cron (fire when UI closed), webhooks, missed-fire catch-up
+- Retries, concurrency limits
 - Agent versioning, approvals, MCP tool picker (Slice D)
 - HITL / run resume (Slice C)
 - OpenTelemetry, Langfuse

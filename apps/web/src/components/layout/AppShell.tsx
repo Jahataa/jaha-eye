@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../../lib/api";
+import { ScheduleTicker } from "../../features/schedules/ScheduleTicker";
 import { useUiStore } from "../../stores/ui-store";
 import { cn } from "../../lib/utils";
 
@@ -9,9 +10,12 @@ const links = [
   { to: "/", label: "Dashboard" },
   { to: "/agents", label: "Agents" },
   { to: "/orchestrations", label: "Orchestrations" },
+  { to: "/schedules", label: "Schedules" },
   { to: "/runs", label: "Runs" },
   { to: "/settings", label: "Settings" },
 ];
+
+const localTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
 function HudTopBar() {
   const [clock, setClock] = useState(() => new Date().toLocaleTimeString());
@@ -29,6 +33,7 @@ function HudTopBar() {
     <header className="flex h-10 shrink-0 items-center justify-between border-b border-border bg-card/80 px-4 text-xs uppercase tracking-wider">
       <div className="flex items-center gap-6">
         <span className="hud-mono text-muted">{clock}</span>
+        <span className="hud-mono text-muted">{localTimeZone}</span>
         <span className="text-muted">
           Active runs: <span className="hud-figure text-accent">{activeCount}</span>
         </span>
@@ -46,6 +51,7 @@ function HudTopBar() {
 export function AppShell() {
   return (
     <div className="flex min-h-screen flex-col">
+      <ScheduleTicker />
       <HudTopBar />
       <div className="flex flex-1">
         <aside className="w-56 shrink-0 border-r border-border bg-card/60 p-4">

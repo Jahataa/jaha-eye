@@ -43,6 +43,7 @@ export function RunsPage() {
               <tr className="border-b border-border text-left">
                 <th className="hud-kicker p-3">Run ID</th>
                 <th className="hud-kicker p-3">Source</th>
+                <th className="hud-kicker p-3">Trigger</th>
                 <th className="hud-kicker p-3">Status</th>
                 <th className="hud-kicker p-3">Started</th>
                 <th className="hud-kicker p-3">Completed</th>
@@ -57,6 +58,7 @@ export function RunsPage() {
                     </Link>
                   </td>
                   <td className="p-3">{runLabel(run, agents, orchestrations)}</td>
+                  <td className="p-3 capitalize">{run.trigger}</td>
                   <td className="p-3">
                     <Badge status={run.status} />
                   </td>

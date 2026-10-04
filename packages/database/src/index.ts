@@ -22,4 +22,6 @@ export type {
   OrchestrationStatus,
   RunStatus,
   RunTrigger,
+  Schedule,
+  ScheduleTargetType,
 } from "@prisma/client";

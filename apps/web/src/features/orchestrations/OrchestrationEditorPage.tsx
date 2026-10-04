@@ -20,6 +20,7 @@ import { Card } from "../../components/ui/card";
 import { OrchestrationCanvas, connectEdge } from "./OrchestrationCanvas";
 import { OrchestrationNodeInspector } from "./OrchestrationNodeInspector";
 import { flowToGraph, graphToFlow, newNodeId, type AgentNodeData } from "./graph-utils";
+import { ScheduleSection } from "../schedules/ScheduleSection";
 
 const BLANK_DEFAULTS = {
   name: "",
@@ -434,6 +435,10 @@ export function OrchestrationEditorPage() {
           )}
         </Card>
       </div>
+
+      {!isNew && id && (
+        <ScheduleSection fixedTarget={{ targetType: "orchestration", orchestrationId: id }} />
+      )}
     </div>
   );
 }

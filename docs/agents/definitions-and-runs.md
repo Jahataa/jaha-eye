@@ -18,7 +18,7 @@ A row in the `Orchestration` table: a saved DAG of existing agents.
 
 ## Run (execution)
 
-A row in `AgentRun` created when you click Run, run an orchestration, or call the run API.
+A row in `AgentRun` created when you click Run, run an orchestration, a schedule fires, or you call the run API.
 
 | Status | Meaning |
 |--------|---------|
@@ -55,7 +55,16 @@ Cancel on the parent cancels all non-terminal children.
 
 ## Trigger
 
-Phase 1: `manual` only. Schedules and API triggers are **Later**.
+| Value | Meaning |
+|-------|---------|
+| `manual` | Operator clicked Run or called the run API directly |
+| `schedule` | Parent run started by a UI-ticked cron schedule (`POST /api/schedules/:id/fire`) |
+
+Orchestration **child** node runs always have `trigger: manual` even when the parent was scheduled.
+
+Schedules are persisted in the `Schedule` table. The browser ticker fires them only while the dashboard is open, using the operator machine's local clock. Missed times while the UI is closed are skipped — there is no server cron loop in Phase 1.
+
+**Later:** worker-ticked cron (fire when UI is closed), webhooks, and other API triggers.
 
 ## Run list filtering
 

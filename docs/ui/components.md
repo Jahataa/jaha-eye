@@ -4,8 +4,8 @@
 
 | Component | Role |
 |-----------|------|
-| `AppShell` | Top bar + sidebar + main content area; sidebar includes Orchestrations nav |
-| `HudTopBar` | Local clock, active-run count (top-level only), live activity line (`SYS // …`) |
+| `AppShell` | Top bar + sidebar + main content area; mounts `ScheduleTicker`; sidebar includes Orchestrations and Schedules nav |
+| `HudTopBar` | Local clock + resolved IANA timezone label, active-run count (top-level only), live activity line (`SYS // …`) |
 | Sidebar callsign | `JAHA-EYE // ONLINE` with slow cyan pulse |
 
 ## Feature components
@@ -17,7 +17,18 @@
 | `components/orchestrations/` | Orchestration list cards |
 | `features/orchestrations/` | Canvas editor (`OrchestrationCanvas`, `OrchestrationNodeInspector`, node palette, side panel), graph node/edge types |
 | `components/runs/` | Run table, run detail header, orchestration graph view, parent/child tree |
+| `features/schedules/` | `ScheduleTicker` (background fire while UI open), `SchedulesPage`, `ScheduleSection` (entity editors), `ScheduleDialog`, cron presets |
 | `components/events/` | `EventTimeline` with vertical trace, cyan nodes, live scan row; tool results shown inline |
+
+## Schedule ticker
+
+Mounted in `AppShell` on every screen while the dashboard is open:
+
+- Queries enabled schedules; on each minute tick, if the 5-field cron expression matches local wall time, `POST /api/schedules/:id/fire` with the current local minute slot.
+- Fires in the background (no navigation); invalidates `runs` query and updates the top-bar activity line.
+- Missed times while the UI is closed are not backfilled; in-memory dedupe plus API slot claim prevent double fires across tabs.
+
+Entity editors (`AgentEditorPage`, `OrchestrationEditorPage`) embed `ScheduleSection` — same create/edit/disable controls as `/schedules`, with the target pre-bound.
 
 ## Orchestration canvas
 

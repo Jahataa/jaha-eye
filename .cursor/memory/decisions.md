@@ -2,6 +2,17 @@
 
 Short record of architectural decisions. Append new entries at the top.
 
+## 2026-10-04 — UI-ticked local cron schedules
+
+| Decision | Why |
+|----------|-----|
+| `Schedule` table + `RunTrigger.schedule` | Persist cron jobs for agents and orchestrations without a server scheduler or worker |
+| Browser `ScheduleTicker` in `AppShell` | Fires only while the UI is open, using the operator machine's local `Date` (same source as `HudTopBar`) |
+| Skip missed fires | Opening the UI does not backfill; a short in-session grace covers background-tab timer throttling only |
+| `POST /api/schedules/:id/fire` with atomic slot claim | Multi-tab safe; API starts runs via existing `startRun` / `startOrchestrationRun` — never executes Strands directly |
+| Shared `croner` helpers in `@jaha-eye/shared` | Ticker, next-fire preview, and API validation share one 5-field cron implementation |
+| IANA zone label in top bar (not persisted) | Operators see what "local" means; timezone is not the firing authority |
+
 ## 2026-10-04 — Orchestration per-node variables and input templates
 
 | Decision | Why |

@@ -9,6 +9,7 @@ import { Label } from "../../components/ui/label";
 import { Textarea } from "../../components/ui/textarea";
 import { Card } from "../../components/ui/card";
 import { ToolCard } from "../../components/tools/ToolCard";
+import { ScheduleSection } from "../schedules/ScheduleSection";
 
 const BLANK_DEFAULTS = {
   name: "",
@@ -357,6 +358,10 @@ export function AgentEditorPage() {
           )}
         </div>
       </Card>
+
+      {!isNew && id && (
+        <ScheduleSection fixedTarget={{ targetType: "agent", agentId: id }} />
+      )}
     </div>
   );
 }

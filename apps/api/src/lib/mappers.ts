@@ -1,4 +1,4 @@
-import type { Agent, AgentRun, AgentRunEvent, Orchestration } from "@jaha-eye/database";
+import type { Agent, AgentRun, AgentRunEvent, Orchestration, Schedule } from "@jaha-eye/database";
 import type {
   AgentDefinition,
   AgentRun as SharedRun,
@@ -6,6 +6,7 @@ import type {
   OrchestrationGraph,
   PersistedAgentEvent,
   RunChildSummary,
+  Schedule as SharedSchedule,
 } from "@jaha-eye/shared";
 
 export function mapAgent(agent: Agent): AgentDefinition {
@@ -79,6 +80,23 @@ export function mapOrchestration(orchestration: Orchestration): OrchestrationDef
     defaultRunInput: orchestration.defaultRunInput,
     createdAt: orchestration.createdAt,
     updatedAt: orchestration.updatedAt,
+  };
+}
+
+export function mapSchedule(schedule: Schedule): SharedSchedule {
+  return {
+    id: schedule.id,
+    name: schedule.name,
+    enabled: schedule.enabled,
+    targetType: schedule.targetType,
+    agentId: schedule.agentId,
+    orchestrationId: schedule.orchestrationId,
+    expression: schedule.expression,
+    input: schedule.input,
+    lastFiredAt: schedule.lastFiredAt,
+    lastFiredSlot: schedule.lastFiredSlot,
+    createdAt: schedule.createdAt,
+    updatedAt: schedule.updatedAt,
   };
 }
 

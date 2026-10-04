@@ -10,7 +10,7 @@ export const RunStatusSchema = z.enum([
 ]);
 export type RunStatus = z.infer<typeof RunStatusSchema>;
 
-export const RunTriggerSchema = z.enum(["manual"]);
+export const RunTriggerSchema = z.enum(["manual", "schedule"]);
 export type RunTrigger = z.infer<typeof RunTriggerSchema>;
 
 export const AgentRunSchema = z.object({

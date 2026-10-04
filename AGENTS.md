@@ -27,7 +27,7 @@ jaha-eye is an **operator console for many agents**, not a chat app. Read this f
 
 1. **API never calls `new Agent()` directly** — only through `AgentFactory` / `StrandsRuntime`.
 2. **Persist every event to `AgentRunEvent` before streaming** it to the client.
-3. **Phase 1 has no Redis, BullMQ, worker, schedules, or Langfuse.**
+3. **Phase 1 has no Redis, BullMQ, worker, server scheduler, or Langfuse.** UI-ticked cron schedules (browser fires while the dashboard is open) are allowed; there is no server cron loop.
 4. **UI speaks REST + AG-UI SSE only** — no direct Strands imports in `apps/web`.
 5. **Do not use `createStrandsApp`** — we encode SSE ourselves in Fastify.
 

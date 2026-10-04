@@ -5,11 +5,12 @@
 | `/` | Dashboard | Counts (running, completed/failed today), active runs list |
 | `/agents` | Agent registry | List agents; Run, Edit, Disable, Delete actions |
 | `/agents/new` | New agent | Template picker, create agent form |
-| `/agents/:id` | Agent editor | Edit name, description, model provider, prompt, grouped tools, default run input, max concurrent runs; Save, Run |
+| `/agents/:id` | Agent editor | Edit name, description, model provider, prompt, grouped tools, default run input, max concurrent runs; schedules section; Save, Run |
 | `/orchestrations` | Orchestration registry | List saved graphs; Run, Edit, Delete |
 | `/orchestrations/new` | New orchestration | Canvas editor with agent palette |
-| `/orchestrations/:id` | Orchestration editor | Edit graph, metadata, default run input; Save, Run |
-| `/runs` | Run history | Table of top-level runs with status, source (agent or orchestration), duration |
+| `/orchestrations/:id` | Orchestration editor | Edit graph, metadata, default run input; schedules section; Save, Run |
+| `/schedules` | Schedules | List cron jobs (agent or orchestration target); create/edit, enable/disable, delete; next-fire preview in local time |
+| `/runs` | Run history | Table of top-level runs with status, source (agent or orchestration), trigger (`manual` / `schedule`), duration |
 | `/runs/:id` | Run detail | Status, input, output, stop button, execution timeline |
 | `/settings` | Settings | Global LLM config: base URL, API key, default model, temperature; Test connection |
 

@@ -7,5 +7,5 @@ alwaysApply: true
 - The API never calls `new Agent()` — only `AgentFactory` / `StrandsRuntime`.
 - The UI speaks REST and AG-UI SSE only; no Strands types in apps/web.
 - Persist every event to `AgentRunEvent` before streaming to the client.
-- Phase 1: no Redis, BullMQ, worker, schedules, or Langfuse.
+- Phase 1: no Redis, BullMQ, worker, server scheduler, or Langfuse; UI-ticked cron schedules are allowed.
 - Do not use `createStrandsApp`; Fastify encodes SSE itself.

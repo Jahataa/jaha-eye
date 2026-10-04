@@ -42,6 +42,23 @@ Resolution order at run time: Settings row → `.env` fallback. Raw API key is n
 
 Deleting an agent returns **409** if any orchestration graph references that agent.
 
+### Schedules
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/schedules` | List schedules |
+| POST | `/api/schedules` | Create schedule (cron expression validated) |
+| GET | `/api/schedules/:id` | Get schedule |
+| PATCH | `/api/schedules/:id` | Update schedule |
+| DELETE | `/api/schedules/:id` | Delete schedule |
+| POST | `/api/schedules/:id/enable` | Set enabled |
+| POST | `/api/schedules/:id/disable` | Set disabled |
+| POST | `/api/schedules/:id/fire` | Claim slot and start run → `{ runId }` (202) |
+
+Fire body: `{ slot: "YYYY-MM-DDTHH:mm" }` (local wall-clock minute). Returns **409** `{ skipped: true }` when that slot was already claimed (multi-tab safe). Rejects fire when the schedule or its agent/orchestration target is disabled. Uses schedule `input` when set; otherwise the entity `defaultRunInput` helpers. Parent runs get `trigger: schedule`; orchestration child node runs stay `manual`.
+
+There is no server cron loop — the UI ticker calls `fire` while the console is open.
+
 ### Runs
 
 | Method | Path | Description |

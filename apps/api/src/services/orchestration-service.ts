@@ -8,6 +8,7 @@ import {
   sinkNodeIds,
   topologicalWaves,
   type OrchestrationGraph,
+  type RunTrigger,
 } from "@jaha-eye/shared";
 import { mapAgent, mapEvent } from "../lib/mappers.js";
 import { eventBus } from "./event-bus.js";
@@ -311,6 +312,7 @@ export async function validateOrchestrationAgents(graph: OrchestrationGraph): Pr
 export async function startOrchestrationRun(
   orchestrationId: string,
   input: string,
+  trigger: RunTrigger = "manual",
 ): Promise<string> {
   const orchestration = await prisma.orchestration.findUniqueOrThrow({
     where: { id: orchestrationId },
@@ -327,7 +329,7 @@ export async function startOrchestrationRun(
     data: {
       orchestrationId,
       status: "queued",
-      trigger: "manual",
+      trigger,
       input: {
         message: input,
         graph,

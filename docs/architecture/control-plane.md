@@ -8,7 +8,7 @@ The control plane manages agent definitions and run lifecycle.
 |-----------|------|
 | **apps/web** | Dashboard, agent registry/editor, run timeline |
 | **apps/api** | REST CRUD, run start/cancel, SSE streaming |
-| **packages/database** | Prisma models: Agent, AgentRun, AgentRunEvent |
+| **packages/database** | Prisma models: Agent, Orchestration, AgentRun, AgentRunEvent, Schedule |
 | **packages/agent-core** | AgentRuntime, factory, Strands adapter |
 
 ## Run lifecycle (Phase 1)
@@ -25,10 +25,15 @@ The browser never connects to agent workers directly. All run start/stop and eve
 
 **Later:** a local Agent Runner process on the host for filesystem/shell tools, connected via secure API — see [planning/future.md](../planning/future.md).
 
+## Schedules (Phase 1)
+
+UI-ticked local cron: the browser queries enabled schedules and calls `POST /api/schedules/:id/fire` when a 5-field expression matches local wall time. The API claims the minute slot and starts a run — it never ticks time or executes Strands on its own. Fires only while the dashboard is open; missed times are skipped.
+
 ## Later (Phase 2)
 
 - Separate worker process via BullMQ
 - Redis for live event fan-out
-- Schedules, retries, concurrency limits
+- Worker-ticked cron and webhooks (fire when UI is closed)
+- Retries, concurrency limits
 
 Full roadmap: [planning/roadmap.md](../planning/roadmap.md).

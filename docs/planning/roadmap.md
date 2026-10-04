@@ -19,15 +19,16 @@ Delivery is intentionally incremental. Phase 1 proves the operator UX; later pha
 | Orchestration run (parent + child runs) | ✅ |
 | Parent/child run graph UI | ✅ |
 | Cancel parent stops all children | ✅ |
+| UI-ticked cron schedules (`/schedules`, editor sections) | ✅ |
 
-**Explicitly not in Phase 1:** Redis, BullMQ, separate worker, cron schedules, agent versioning, approvals, Langfuse, local host runner.
+**Explicitly not in Phase 1:** Redis, BullMQ, separate worker, server-side scheduler / worker-ticked cron, agent versioning, approvals, Langfuse, local host runner.
 
 ## Phase 2 — Platform scale
 
 | Feature | Notes |
 |---------|-------|
 | Redis + BullMQ + worker process | `QueueAgentRunner` behind same `AgentRuntime` interface |
-| Schedules (cron, webhook triggers) | Scheduler creates `AgentRun` rows; never executes agents directly |
+| Worker-ticked schedules (cron when UI closed, webhooks) | Scheduler creates `AgentRun` rows; never executes agents directly |
 | Retries and concurrency limits | Per-agent `maxRuns` enforcement |
 | Agent versioning | Immutable versions; runs record `agentVersionId` |
 | MCP tool picker | Native + MCP tools in agent editor |

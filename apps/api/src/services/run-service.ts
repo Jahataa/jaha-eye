@@ -4,7 +4,7 @@ import {
   StrandsRuntime,
   type NormalizedEvent,
 } from "@jaha-eye/agent-core";
-import type { AgentDefinition, PersistedAgentEvent } from "@jaha-eye/shared";
+import type { AgentDefinition, PersistedAgentEvent, RunTrigger } from "@jaha-eye/shared";
 import { eventBus } from "./event-bus.js";
 import { getEffectiveLlmConfig } from "./settings-service.js";
 import { mapAgent, mapEvent } from "../lib/mappers.js";
@@ -136,7 +136,11 @@ export async function executeRun(
   }
 }
 
-export async function startRun(agentId: string, input: string): Promise<string> {
+export async function startRun(
+  agentId: string,
+  input: string,
+  trigger: RunTrigger = "manual",
+): Promise<string> {
   const agent = await prisma.agent.findUniqueOrThrow({ where: { id: agentId } });
   if (agent.status === "disabled") {
     throw new Error("Agent is disabled");
@@ -146,7 +150,7 @@ export async function startRun(agentId: string, input: string): Promise<string> 
     data: {
       agentId,
       status: "queued",
-      trigger: "manual",
+      trigger,
       input: { message: input },
     },
   });

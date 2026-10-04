@@ -5,21 +5,31 @@ import type {
   BuiltinTool,
   CreateAgentInput,
   CreateOrchestrationInput,
+  CreateScheduleInput,
+  FireScheduleResponse,
+  FireScheduleSkippedResponse,
   LlmModelsResponse,
   LlmSettings,
+  LocalMinuteSlot,
   OrchestrationDefinition,
   PersistedAgentEvent,
   RolePreset,
+  Schedule,
   TestLlmSettingsInput,
   UpdateAgentInput,
   UpdateLlmSettingsInput,
   UpdateOrchestrationInput,
+  UpdateScheduleInput,
 } from "@jaha-eye/shared";
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const hasBody = init?.body != null && init.body !== "";
   const res = await fetch(path, {
-    headers: { "Content-Type": "application/json", ...init?.headers },
     ...init,
+    headers: {
+      ...(hasBody ? { "Content-Type": "application/json" } : {}),
+      ...init?.headers,
+    },
   });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
@@ -84,4 +94,33 @@ export const api = {
       method: "POST",
       body: JSON.stringify(data ?? {}),
     }),
+  getSchedules: () => request<Schedule[]>("/api/schedules"),
+  getSchedule: (id: string) => request<Schedule>(`/api/schedules/${id}`),
+  createSchedule: (data: CreateScheduleInput) =>
+    request<Schedule>("/api/schedules", { method: "POST", body: JSON.stringify(data) }),
+  updateSchedule: (id: string, data: UpdateScheduleInput) =>
+    request<Schedule>(`/api/schedules/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
+  deleteSchedule: (id: string) => request<void>(`/api/schedules/${id}`, { method: "DELETE" }),
+  enableSchedule: (id: string) =>
+    request<Schedule>(`/api/schedules/${id}/enable`, { method: "POST" }),
+  disableSchedule: (id: string) =>
+    request<Schedule>(`/api/schedules/${id}/disable`, { method: "POST" }),
+  fireSchedule: async (
+    id: string,
+    slot: LocalMinuteSlot,
+  ): Promise<FireScheduleResponse | FireScheduleSkippedResponse> => {
+    const res = await fetch(`/api/schedules/${id}/fire`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ slot }),
+    });
+    if (res.status === 409) {
+      return { skipped: true };
+    }
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.error ?? `Request failed: ${res.status}`);
+    }
+    return res.json() as Promise<FireScheduleResponse>;
+  },
 };
