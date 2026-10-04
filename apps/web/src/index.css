@@ -1,17 +1,94 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: #0a0a0b;
-  --color-foreground: #fafafa;
-  --color-muted: #71717a;
-  --color-border: #27272a;
-  --color-card: #18181b;
-  --color-accent: #3b82f6;
+  --color-background: #05070a;
+  --color-foreground: #e8fbff;
+  --color-muted: #6f8b93;
+  --color-border: rgb(125 249 255 / 0.18);
+  --color-card: #070b10;
+  --color-accent: #7df9ff;
   --color-success: #22c55e;
   --color-warning: #eab308;
   --color-danger: #ef4444;
+  --font-sans: "Rajdhani", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Share Tech Mono", ui-monospace, monospace;
 }
 
 body {
   @apply bg-background text-foreground antialiased;
+  font-family: var(--font-sans);
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgb(125 249 255 / 0.08), transparent),
+    linear-gradient(rgb(125 249 255 / 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(125 249 255 / 0.03) 1px, transparent 1px);
+  background-size: 100% 100%, 48px 48px, 48px 48px;
+}
+
+@keyframes hud-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 6px rgb(125 249 255 / 0.4);
+  }
+  50% {
+    opacity: 0.65;
+    box-shadow: 0 0 14px rgb(125 249 255 / 0.7);
+  }
+}
+
+@keyframes hud-scan {
+  0% {
+    background-position: 0 -100%;
+  }
+  100% {
+    background-position: 0 200%;
+  }
+}
+
+@keyframes hud-callsign-pulse {
+  0%,
+  100% {
+    text-shadow: 0 0 8px rgb(125 249 255 / 0.5);
+    opacity: 1;
+  }
+  50% {
+    text-shadow: 0 0 16px rgb(125 249 255 / 0.9);
+    opacity: 0.85;
+  }
+}
+
+.hud-kicker {
+  @apply text-xs font-semibold uppercase tracking-[0.25em] text-muted;
+  font-family: var(--font-sans);
+}
+
+.hud-figure {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+.hud-mono {
+  font-family: var(--font-mono);
+}
+
+.hud-pulse {
+  animation: hud-pulse 2s ease-in-out infinite;
+}
+
+.hud-callsign-pulse {
+  animation: hud-callsign-pulse 3s ease-in-out infinite;
+}
+
+.hud-scan-row {
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgb(125 249 255 / 0.06) 45%,
+    rgb(125 249 255 / 0.14) 50%,
+    rgb(125 249 255 / 0.06) 55%,
+    transparent 100%
+  );
+  background-size: 100% 200%;
+  animation: hud-scan 2.5s linear infinite;
 }

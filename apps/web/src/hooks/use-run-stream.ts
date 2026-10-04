@@ -1,14 +1,19 @@
 import { useEffect, useState } from "react";
 import type { PersistedAgentEvent } from "@jaha-eye/shared";
+import { useUiStore } from "../stores/ui-store";
 
 const TERMINAL = new Set(["completed", "failed", "cancelled"]);
 
 export function useRunStream(runId: string | undefined, runStatus: string | undefined) {
   const [liveEvents, setLiveEvents] = useState<PersistedAgentEvent[]>([]);
-  const [activity, setActivity] = useState<string | null>(null);
+  const [activity, setActivityLocal] = useState<string | null>(null);
+  const setActivity = useUiStore((s) => s.setActivity);
 
   useEffect(() => {
-    if (!runId || !runStatus || TERMINAL.has(runStatus)) return;
+    if (!runId || !runStatus || TERMINAL.has(runStatus)) {
+      setActivity(null);
+      return;
+    }
 
     const source = new EventSource(`/api/runs/${runId}/stream`);
 
@@ -19,22 +24,31 @@ export function useRunStream(runId: string | undefined, runStatus: string | unde
         return [...prev, event];
       });
 
+      let nextActivity: string | null = null;
       if (event.type === "TOOL_CALL_START") {
         const name = String(event.payload.toolCallName ?? "tool");
-        setActivity(`Calling ${name}…`);
+        nextActivity = `Calling ${name}…`;
       } else if (event.type === "TEXT_MESSAGE_START") {
-        setActivity("Generating response…");
+        nextActivity = "Generating response…";
       } else if (event.type === "RUN_FINISHED") {
-        setActivity("Run finished");
+        nextActivity = "Run finished";
       } else if (event.type === "RUN_ERROR") {
-        setActivity("Run failed");
+        nextActivity = "Run failed";
+      }
+
+      if (nextActivity) {
+        setActivityLocal(nextActivity);
+        setActivity(nextActivity);
       }
     };
 
     source.onerror = () => source.close();
 
-    return () => source.close();
-  }, [runId, runStatus]);
+    return () => {
+      source.close();
+      setActivity(null);
+    };
+  }, [runId, runStatus, setActivity]);
 
   return { liveEvents, activity };
 }

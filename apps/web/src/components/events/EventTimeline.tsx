@@ -1,5 +1,6 @@
 import type { PersistedAgentEvent } from "@jaha-eye/shared";
-import { Card } from "../ui/card";
+import { Card, CardTitle } from "../ui/card";
+import { cn } from "../../lib/utils";
 
 function formatTime(date: Date | string) {
   return new Date(date).toLocaleTimeString();
@@ -26,22 +27,57 @@ function eventLabel(event: PersistedAgentEvent): string {
   }
 }
 
-export function EventTimeline({ events }: { events: PersistedAgentEvent[] }) {
+export function EventTimeline({
+  events,
+  live = false,
+}: {
+  events: PersistedAgentEvent[];
+  live?: boolean;
+}) {
   if (events.length === 0) {
-    return <Card className="text-muted">No events yet.</Card>;
+    return (
+      <Card className="text-muted">
+        <CardTitle>Execution timeline</CardTitle>
+        <p className="mt-4">No events yet.</p>
+      </Card>
+    );
   }
+
+  const lastIndex = events.length - 1;
 
   return (
     <Card>
-      <h3 className="mb-4 font-semibold">Execution timeline</h3>
-      <ol className="space-y-2">
-        {events.map((event) => (
-          <li key={event.id} className="flex gap-3 text-sm">
-            <span className="w-20 shrink-0 text-muted">{formatTime(event.timestamp)}</span>
-            <span className="w-40 shrink-0 font-mono text-xs text-accent">{event.type}</span>
-            <span>{eventLabel(event)}</span>
-          </li>
-        ))}
+      <CardTitle>Execution timeline</CardTitle>
+      <ol className="relative mt-4 space-y-0 pl-6">
+        <span
+          aria-hidden
+          className="absolute bottom-2 left-[7px] top-2 w-px bg-accent/30"
+        />
+        {events.map((event, index) => {
+          const isLatest = live && index === lastIndex;
+          return (
+            <li
+              key={event.id}
+              className={cn(
+                "relative flex gap-3 py-2 text-sm",
+                isLatest && "hud-scan-row",
+              )}
+            >
+              <span
+                aria-hidden
+                className={cn(
+                  "absolute -left-6 top-3 h-2.5 w-2.5 rounded-full border border-accent bg-background shadow-[0_0_6px_rgb(125_249_255_/_0.6)]",
+                  isLatest && "hud-pulse bg-accent/30",
+                )}
+              />
+              <span className="hud-mono w-20 shrink-0 text-xs text-muted">
+                {formatTime(event.timestamp)}
+              </span>
+              <span className="hud-mono w-44 shrink-0 text-xs text-accent">{event.type}</span>
+              <span className="min-w-0 flex-1">{eventLabel(event)}</span>
+            </li>
+          );
+        })}
       </ol>
     </Card>
   );

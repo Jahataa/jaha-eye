@@ -18,6 +18,7 @@ Mutations invalidate relevant queries after create/update/delete/run.
 
 - Selected agent id (optional)
 - Dialog open/close flags
+- `activity` — current run activity sentence for the top bar (`SYS // …`); set by `useRunStream`, cleared on unmount or terminal run
 
 Do not put server data in Zustand.
 

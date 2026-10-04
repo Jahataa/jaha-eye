@@ -61,6 +61,7 @@ export function AgentEditorPage() {
   const [defaultRunInput, setDefaultRunInput] = useState(BLANK_DEFAULTS.defaultRunInput);
   const [maxConcurrentRuns, setMaxConcurrentRuns] = useState(BLANK_DEFAULTS.maxConcurrentRuns);
   const [selectedPresetId, setSelectedPresetId] = useState("");
+  const [saveFeedback, setSaveFeedback] = useState<string | null>(null);
 
   useEffect(() => {
     if (agent) {
@@ -105,10 +106,17 @@ export function AgentEditorPage() {
   }
 
   const saveMutation = useMutation({
+    onMutate: () => setSaveFeedback(null),
     mutationFn: async () => {
+      if (!name.trim()) throw new Error("Name is required.");
+      if (isNew && !slug.trim()) throw new Error("Slug is required.");
+      if (isNew && !/^[a-z0-9-]+$/.test(slug)) {
+        throw new Error("Slug must use lowercase letters, numbers, and hyphens only.");
+      }
+
       const payload = {
-        name,
-        slug,
+        name: name.trim(),
+        slug: slug.trim(),
         description: description || undefined,
         modelProvider,
         modelName,
@@ -124,9 +132,23 @@ export function AgentEditorPage() {
     },
     onSuccess: (saved) => {
       queryClient.invalidateQueries({ queryKey: ["agents"] });
-      if (isNew) navigate(`/agents/${saved.id}`);
+      queryClient.invalidateQueries({ queryKey: ["agents", saved.id] });
+      if (isNew) {
+        navigate(`/agents/${saved.id}`);
+      } else {
+        setSaveFeedback("Agent saved.");
+      }
+    },
+    onError: (error) => {
+      setSaveFeedback(error instanceof Error ? error.message : "Save failed.");
     },
   });
+
+  useEffect(() => {
+    if (!saveFeedback) return;
+    const timer = setTimeout(() => setSaveFeedback(null), 3000);
+    return () => clearTimeout(timer);
+  }, [saveFeedback]);
 
   const runMutation = useMutation({
     mutationFn: async () => {
@@ -153,14 +175,16 @@ export function AgentEditorPage() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-      <h1 className="text-2xl font-bold">{isNew ? "New agent" : "Edit agent"}</h1>
+      <h1 className="hud-kicker text-base text-foreground">
+        {isNew ? "New agent" : "Edit agent"}
+      </h1>
 
       <Card className="space-y-4">
         {isNew && (
           <div>
             <Label>Start from template</Label>
             <select
-              className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+              className="hud-mono mt-1 w-full border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent/60"
               value={selectedPresetId}
               onChange={(e) => handlePresetChange(e.target.value)}
             >
@@ -195,7 +219,7 @@ export function AgentEditorPage() {
         <div>
           <Label>Model provider</Label>
           <select
-            className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
+            className="hud-mono mt-1 w-full border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent/60"
             value={modelProvider}
             onChange={(e) => setModelProvider(e.target.value)}
           >
@@ -286,17 +310,38 @@ export function AgentEditorPage() {
             placeholder="Message used when you click Run"
           />
         </div>
-        <div className="flex gap-2 pt-2">
-          <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending}>
-            Save
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => runMutation.mutate()}
-            disabled={runMutation.isPending}
-          >
-            Run
-          </Button>
+        <div className="space-y-2 pt-2">
+          <div className="flex gap-2">
+            <Button
+              onClick={() => saveMutation.mutate()}
+              disabled={saveMutation.isPending || (!isNew && !agent)}
+            >
+              {saveMutation.isPending ? "Saving…" : "Save"}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => runMutation.mutate()}
+              disabled={runMutation.isPending || (!isNew && !agent)}
+            >
+              Run
+            </Button>
+          </div>
+          {saveFeedback && (
+            <p
+              className={
+                saveFeedback === "Agent saved."
+                  ? "hud-mono text-sm text-success"
+                  : "text-sm text-danger"
+              }
+            >
+              {saveFeedback}
+            </p>
+          )}
+          {runMutation.isError && (
+            <p className="text-sm text-danger">
+              {runMutation.error instanceof Error ? runMutation.error.message : "Run failed."}
+            </p>
+          )}
         </div>
       </Card>
     </div>

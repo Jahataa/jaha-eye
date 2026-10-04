@@ -2,13 +2,13 @@ import type { HTMLAttributes } from "react";
 import { cn } from "../../lib/utils";
 
 const colors: Record<string, string> = {
-  running: "bg-accent/20 text-accent",
-  completed: "bg-success/20 text-success",
-  failed: "bg-danger/20 text-danger",
-  cancelled: "bg-muted/20 text-muted",
-  queued: "bg-warning/20 text-warning",
-  active: "bg-success/20 text-success",
-  disabled: "bg-muted/20 text-muted",
+  running: "border border-accent/50 bg-accent/15 text-accent hud-pulse",
+  completed: "border border-success/40 bg-success/10 text-success",
+  failed: "border border-danger/40 bg-danger/10 text-danger",
+  cancelled: "border border-muted/30 bg-muted/10 text-muted",
+  queued: "border border-warning/40 bg-warning/10 text-warning",
+  active: "border border-success/40 bg-success/10 text-success",
+  disabled: "border border-muted/30 bg-muted/10 text-muted",
 };
 
 export function Badge({
@@ -19,8 +19,8 @@ export function Badge({
   return (
     <span
       className={cn(
-        "inline-flex rounded-full px-2 py-0.5 text-xs font-medium uppercase",
-        colors[status] ?? "bg-card text-foreground",
+        "inline-flex px-2 py-0.5 text-xs font-semibold uppercase tracking-wider",
+        colors[status] ?? "border border-border bg-card text-foreground",
         className,
       )}
       {...props}

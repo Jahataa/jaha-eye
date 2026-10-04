@@ -12,7 +12,7 @@ export function RunsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Runs</h1>
+      <h1 className="hud-kicker text-base text-foreground">Runs</h1>
 
       {runs.length === 0 ? (
         <Card className="text-muted">No runs yet.</Card>
@@ -20,21 +20,21 @@ export function RunsPage() {
         <Card className="overflow-x-auto p-0">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-border text-left text-muted">
-                <th className="p-3">Run ID</th>
-                <th className="p-3">Agent</th>
-                <th className="p-3">Status</th>
-                <th className="p-3">Started</th>
-                <th className="p-3">Completed</th>
+              <tr className="border-b border-border text-left">
+                <th className="hud-kicker p-3">Run ID</th>
+                <th className="hud-kicker p-3">Agent</th>
+                <th className="hud-kicker p-3">Status</th>
+                <th className="hud-kicker p-3">Started</th>
+                <th className="hud-kicker p-3">Completed</th>
               </tr>
             </thead>
             <tbody>
               {runs.map((run) => {
                 const agent = agents.find((a) => a.id === run.agentId);
                 return (
-                  <tr key={run.id} className="border-b border-border hover:bg-background">
+                  <tr key={run.id} className="border-b border-border/50 hover:bg-accent/5">
                     <td className="p-3">
-                      <Link to={`/runs/${run.id}`} className="font-mono text-accent hover:underline">
+                      <Link to={`/runs/${run.id}`} className="hud-mono text-accent hover:underline">
                         {run.id.slice(0, 8)}…
                       </Link>
                     </td>
@@ -42,10 +42,10 @@ export function RunsPage() {
                     <td className="p-3">
                       <Badge status={run.status} />
                     </td>
-                    <td className="p-3 text-muted">
+                    <td className="hud-mono p-3 text-xs text-muted">
                       {run.startedAt ? new Date(run.startedAt).toLocaleString() : "—"}
                     </td>
-                    <td className="p-3 text-muted">
+                    <td className="hud-mono p-3 text-xs text-muted">
                       {run.completedAt ? new Date(run.completedAt).toLocaleString() : "—"}
                     </td>
                   </tr>

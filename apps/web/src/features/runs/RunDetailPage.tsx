@@ -53,19 +53,26 @@ export function RunDetailPage() {
       ? String((run.input as { message: string }).message)
       : JSON.stringify(run.input);
 
+  const isLive = !TERMINAL.has(run.status);
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Run {run.id.slice(0, 8)}…</h1>
-          <div className="mt-2 flex items-center gap-2">
+          <h1 className="hud-kicker text-base text-foreground">
+            Run <span className="hud-mono text-accent">{run.id.slice(0, 8)}</span>
+          </h1>
+          <div className="mt-3 flex flex-wrap items-center gap-3">
             <Badge status={run.status} />
-            {activity && !TERMINAL.has(run.status) && (
-              <span className="text-sm text-muted">{activity}</span>
+            {activity && isLive && (
+              <span className="hud-mono text-sm text-accent/90">
+                <span className="text-muted">SYS // </span>
+                {activity}
+              </span>
             )}
           </div>
         </div>
-        {!TERMINAL.has(run.status) && (
+        {isLive && (
           <Button variant="danger" onClick={() => cancelMutation.mutate()} disabled={cancelMutation.isPending}>
             Stop
           </Button>
@@ -74,24 +81,26 @@ export function RunDetailPage() {
 
       <Card>
         <CardTitle>Input</CardTitle>
-        <pre className="mt-2 whitespace-pre-wrap text-sm">{inputMessage}</pre>
+        <pre className="hud-mono mt-2 whitespace-pre-wrap text-sm">{inputMessage}</pre>
       </Card>
 
       {run.output != null && (
         <Card>
           <CardTitle>Output</CardTitle>
-          <pre className="mt-2 whitespace-pre-wrap text-sm">{JSON.stringify(run.output, null, 2)}</pre>
+          <pre className="hud-mono mt-2 whitespace-pre-wrap text-sm">
+            {JSON.stringify(run.output, null, 2)}
+          </pre>
         </Card>
       )}
 
       {run.error && (
-        <Card className="border-danger">
+        <Card className="border-danger/50">
           <CardTitle className="text-danger">Error</CardTitle>
           <p className="mt-2 text-sm">{run.error.message}</p>
         </Card>
       )}
 
-      <EventTimeline events={events} />
+      <EventTimeline events={events} live={isLive} />
     </div>
   );
 }

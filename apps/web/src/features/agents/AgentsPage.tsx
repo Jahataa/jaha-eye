@@ -25,7 +25,7 @@ export function AgentsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Agents</h1>
+        <h1 className="hud-kicker text-base text-foreground">Agents</h1>
         <Button onClick={() => navigate("/agents/new")}>New agent</Button>
       </div>
 
@@ -37,7 +37,7 @@ export function AgentsPage() {
             <Card key={agent.id} className="flex items-center justify-between">
               <div>
                 <div className="flex items-center gap-2">
-                  <Link to={`/agents/${agent.id}`} className="text-lg font-medium hover:text-accent">
+                  <Link to={`/agents/${agent.id}`} className="text-lg font-semibold hover:text-accent">
                     {agent.name}
                   </Link>
                   <Badge status={agent.status} />
