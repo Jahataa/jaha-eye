@@ -15,6 +15,13 @@ const factory = new AgentFactory({
 
 export const runtime = new StrandsRuntime(factory);
 
+export class ConcurrentRunLimitError extends Error {
+  constructor() {
+    super("Maximum concurrent runs reached for this agent");
+    this.name = "ConcurrentRunLimitError";
+  }
+}
+
 /** Serializes event persistence per run so parallel orchestration nodes cannot collide on sequence. */
 const persistQueues = new Map<string, Promise<void>>();
 
@@ -68,6 +75,25 @@ export function persistRunEvent(
       }
     }
   });
+}
+
+export async function countActiveRunsForAgent(agentId: string): Promise<number> {
+  return prisma.agentRun.count({
+    where: {
+      agentId,
+      status: { in: ["queued", "running"] },
+    },
+  });
+}
+
+export async function assertAgentConcurrentRunCapacity(
+  agentId: string,
+  maxConcurrentRuns: number,
+): Promise<void> {
+  const activeCount = await countActiveRunsForAgent(agentId);
+  if (activeCount >= maxConcurrentRuns) {
+    throw new ConcurrentRunLimitError();
+  }
 }
 
 export async function executeRun(
@@ -145,6 +171,8 @@ export async function startRun(
   if (agent.status === "disabled") {
     throw new Error("Agent is disabled");
   }
+
+  await assertAgentConcurrentRunCapacity(agentId, agent.maxConcurrentRuns);
 
   const run = await prisma.agentRun.create({
     data: {

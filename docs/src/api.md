@@ -2,17 +2,23 @@
 
 Fastify control API with Zod validation.
 
+## Authentication
+
+All `/api/*` routes require `Authorization: Bearer <API_TOKEN>`. `GET /health` is public. The API binds to `127.0.0.1` by default. Unexpected server errors return `{ error: "Internal server error" }` without stack traces.
+
+In dev, the Vite proxy injects the bearer token for browser `fetch` and SSE.
+
 ## Routes
 
 ### Settings
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/api/settings` | Effective LLM config (masked key: `hasApiKey`, `apiKeySource`) |
-| PATCH | `/api/settings` | Upsert global LLM settings |
-| POST | `/api/settings/test` | Probe `{baseUrl}/models` with Bearer key; returns model ids |
+| GET | `/api/settings` | Effective LLM config (`hasApiKey`, `apiKeySource` from env only) |
+| PATCH | `/api/settings` | Upsert base URL, default model, temperature (no API key) |
+| POST | `/api/settings/test` | Probe `{baseUrl}/models` with env key; generic errors on failure |
 
-Resolution order at run time: Settings row → `.env` fallback. Raw API key is never returned on GET.
+Base URL resolution at run time: Settings row → `.env` fallback. API key: `OPENAI_API_KEY` only.
 
 ### Agents
 
@@ -77,10 +83,11 @@ Running an orchestration returns **409** if any node agent is missing or disable
 
 `RunService.startRun()` (single agent):
 
-1. Creates DB row (queued → running).
-2. Returns runId immediately to client.
-3. Executes `StrandsRuntime.stream()` in-process.
-4. Persists each event before SSE broadcast.
+1. Refuses when active (`queued` + `running`) runs for the agent ≥ `maxConcurrentRuns`.
+2. Creates DB row (queued → running).
+3. Returns runId immediately to client.
+4. Executes `StrandsRuntime.stream()` in-process.
+5. Persists each event before SSE broadcast.
 
 `OrchestrationService.startOrchestrationRun()` (graph):
 

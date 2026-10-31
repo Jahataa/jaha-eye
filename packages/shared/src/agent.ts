@@ -1,4 +1,15 @@
 import { z } from "zod";
+import { modelBaseUrlRefinement } from "./model-url-policy.js";
+
+const modelBaseUrlField = z
+  .string()
+  .url()
+  .optional()
+  .nullable()
+  .superRefine((value, ctx) => {
+    if (value == null || value === "") return;
+    modelBaseUrlRefinement(value, ctx);
+  });
 
 export const AgentStatusSchema = z.enum(["active", "disabled"]);
 export type AgentStatus = z.infer<typeof AgentStatusSchema>;
@@ -29,7 +40,7 @@ export const CreateAgentSchema = z.object({
   description: z.string().optional(),
   modelProvider: z.string().default("openai"),
   modelName: z.string().optional(),
-  modelBaseUrl: z.string().url().optional().nullable(),
+  modelBaseUrl: modelBaseUrlField,
   modelTemperature: z.number().min(0).max(2).optional(),
   systemPrompt: z.string().default("You are a helpful assistant."),
   tools: z.array(z.string()).default([]),

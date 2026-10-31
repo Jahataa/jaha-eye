@@ -12,7 +12,6 @@ export function SettingsPage() {
   const testMutation = useTestSettings();
 
   const [baseUrl, setBaseUrl] = useState("");
-  const [apiKey, setApiKey] = useState("");
   const [defaultModelName, setDefaultModelName] = useState("gpt-4o-mini");
   const [defaultTemperature, setDefaultTemperature] = useState("0.7");
   const [availableModels, setAvailableModels] = useState<LlmModel[]>([]);
@@ -24,7 +23,6 @@ export function SettingsPage() {
       setBaseUrl(settings.baseUrl ?? "");
       setDefaultModelName(settings.defaultModelName);
       setDefaultTemperature(String(settings.defaultTemperature));
-      setApiKey("");
     }
   }, [settings]);
 
@@ -41,8 +39,7 @@ export function SettingsPage() {
   }, [testFeedback]);
 
   function buildOverrides() {
-    const overrides: { apiKey?: string; baseUrl?: string } = {};
-    if (apiKey.trim()) overrides.apiKey = apiKey.trim();
+    const overrides: { baseUrl?: string } = {};
     if (baseUrl.trim()) overrides.baseUrl = baseUrl.trim();
     return overrides;
   }
@@ -65,30 +62,13 @@ export function SettingsPage() {
   async function handleSave() {
     setSaveFeedback(null);
     try {
-      const payload: {
-        apiKey?: string | null;
-        baseUrl?: string | null;
-        defaultModelName: string;
-        defaultTemperature: number;
-      } = {
+      const payload = {
         defaultModelName,
         defaultTemperature: Number(defaultTemperature),
+        baseUrl: baseUrl.trim() ? baseUrl.trim() : null,
       };
 
-      if (apiKey.trim()) {
-        payload.apiKey = apiKey.trim();
-      } else if (apiKey === "" && settings?.apiKeySource === "settings") {
-        // Operator cleared the field — no action unless they explicitly want to clear
-      }
-
-      if (baseUrl.trim()) {
-        payload.baseUrl = baseUrl.trim();
-      } else {
-        payload.baseUrl = null;
-      }
-
       await updateMutation.mutateAsync(payload);
-      setApiKey("");
       setSaveFeedback("Settings saved.");
     } catch (error) {
       setSaveFeedback(error instanceof Error ? error.message : "Save failed.");
@@ -99,11 +79,9 @@ export function SettingsPage() {
     return <p className="text-muted">Loading settings…</p>;
   }
 
-  const apiKeyPlaceholder = settings?.hasApiKey
-    ? settings.apiKeySource === "settings"
-      ? "•••••••• (saved in Settings)"
-      : "•••••••• (from environment)"
-    : "Enter API key";
+  const apiKeyStatus = settings?.hasApiKey
+    ? "Configured via OPENAI_API_KEY in the environment."
+    : "Not set — add OPENAI_API_KEY to .env and restart the API.";
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
@@ -132,36 +110,10 @@ export function SettingsPage() {
 
         <div>
           <Label>API key</Label>
-          <Input
-            type="password"
-            value={apiKey}
-            onChange={(e) => setApiKey(e.target.value)}
-            placeholder={apiKeyPlaceholder}
-            autoComplete="off"
-          />
-          {settings?.hasApiKey && !apiKey && (
-            <p className="mt-1 text-xs text-muted">
-              Key configured via {settings.apiKeySource}. Leave blank to keep current key.
-            </p>
-          )}
-          {settings?.apiKeySource === "settings" && (
-            <button
-              type="button"
-              className="mt-1 text-xs text-accent underline"
-              onClick={async () => {
-                setSaveFeedback(null);
-                try {
-                  await updateMutation.mutateAsync({ apiKey: null });
-                  setApiKey("");
-                  setSaveFeedback("Saved key cleared; using environment fallback.");
-                } catch (error) {
-                  setSaveFeedback(error instanceof Error ? error.message : "Clear failed.");
-                }
-              }}
-            >
-              Clear saved key (use environment)
-            </button>
-          )}
+          <p className="mt-1 text-sm text-foreground">{apiKeyStatus}</p>
+          <p className="mt-1 text-xs text-muted">
+            Keys are read from the server environment only and are not stored in the database.
+          </p>
         </div>
 
         <div>

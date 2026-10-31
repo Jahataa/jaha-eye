@@ -19,8 +19,8 @@ export const settingsRoutes: FastifyPluginAsync = async (app) => {
     try {
       return await upsertSettings(parsed.data);
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to save settings";
-      return reply.status(500).send({ error: message });
+      req.log.error(error);
+      return reply.status(500).send({ error: "Internal server error" });
     }
   });
 

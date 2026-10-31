@@ -10,16 +10,20 @@ Phase 1 ships six built-in tools: one custom and five from the Strands SDK vende
 | `calculator` | Calculator | utility | safe | custom |
 | `sleep` | Sleep | utility | safe | `@strands-agents/sdk/vended-tools/sleep` |
 | `notebook` | Notebook | planning | safe | `@strands-agents/sdk/vended-tools/notebook` |
-| `http_request` | HTTP Request | network | network | `@strands-agents/sdk/vended-tools/http-request` |
-| `web_fetch` | Web Fetch | network | network | `@strands-agents/sdk/vended-tools/web-fetch` |
+| `http_request` | HTTP Request | network | network | guarded fetch (`redirect: manual`) |
+| `web_fetch` | Web Fetch | network | network | guarded fetch (`redirect: manual`) |
 
-Registered in `packages/agent-core/src/tools/registry.ts`. Network tools pass through a host allowlist guard when `HTTP_ALLOWED_HOSTS` is set.
+Registered in `packages/agent-core/src/tools/registry.ts`. Network tools use `HTTP_ALLOWED_HOSTS`, DNS resolution checks, and reject redirects.
 
 Enable via checkbox in the agent editor; stored in `Agent.tools` JSON array.
 
 ## Network egress
 
-Set `HTTP_ALLOWED_HOSTS` to a comma-separated list of allowed hostnames (e.g. `httpbin.org,example.com`). When unset, all hosts are allowed and a startup warning is logged.
+**Default deny:** when `HTTP_ALLOWED_HOSTS` is unset or empty, `http_request` and `web_fetch` refuse every host.
+
+To allow outbound research, set a comma-separated hostname allowlist (e.g. `httpbin.org,example.com`). Hostnames must resolve to public addresses — loopback, private, and link-local DNS answers are rejected even if the hostname is listed.
+
+Redirects (3xx) are not followed.
 
 See [environment](../conf/environment.md).
 

@@ -21,6 +21,7 @@
     "zustand": "^5.0.8"
   },
   "devDependencies": {
+    "dotenv": "^17.2.2",
     "@tailwindcss/vite": "^4.1.13",
     "@types/react": "^19.1.13",
     "@types/react-dom": "^19.1.9",

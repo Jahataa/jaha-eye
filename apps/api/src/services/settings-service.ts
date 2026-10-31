@@ -1,4 +1,5 @@
 import { prisma } from "@jaha-eye/database";
+import { assertModelBaseUrlAllowed } from "@jaha-eye/shared";
 import type {
   LlmModelsResponse,
   LlmSettings,
@@ -19,7 +20,7 @@ async function getSettingsRow() {
 
 export async function getEffectiveLlmConfig(): Promise<EffectiveLlmConfig> {
   const row = await getSettingsRow();
-  const apiKey = row?.llmApiKey ?? process.env.OPENAI_API_KEY;
+  const apiKey = process.env.OPENAI_API_KEY;
   const baseUrl = row?.llmBaseUrl ?? process.env.OPENAI_BASE_URL;
 
   return {
@@ -44,16 +45,8 @@ export async function getPublicSettings(): Promise<LlmSettings> {
   const envKey = process.env.OPENAI_API_KEY;
   const envBaseUrl = process.env.OPENAI_BASE_URL;
 
-  let hasApiKey = false;
-  let apiKeySource: LlmSettings["apiKeySource"] = "none";
-
-  if (row?.llmApiKey) {
-    hasApiKey = true;
-    apiKeySource = "settings";
-  } else if (envKey) {
-    hasApiKey = true;
-    apiKeySource = "env";
-  }
+  const hasApiKey = Boolean(envKey);
+  const apiKeySource: LlmSettings["apiKeySource"] = hasApiKey ? "env" : "none";
 
   let baseUrl: string | null = null;
   let baseUrlSource: LlmSettings["baseUrlSource"] = "none";
@@ -79,15 +72,11 @@ export async function getPublicSettings(): Promise<LlmSettings> {
 export async function upsertSettings(input: UpdateLlmSettingsInput): Promise<LlmSettings> {
   const existing = await getSettingsRow();
   const data: {
-    llmApiKey?: string | null;
     llmBaseUrl?: string | null;
     defaultModelName?: string;
     defaultTemperature?: number;
   } = {};
 
-  if (input.apiKey !== undefined) {
-    data.llmApiKey = input.apiKey;
-  }
   if (input.baseUrl !== undefined) {
     data.llmBaseUrl = input.baseUrl;
   }
@@ -118,13 +107,20 @@ export async function testConnection(
   overrides?: TestLlmSettingsInput,
 ): Promise<LlmModelsResponse> {
   const row = await getSettingsRow();
-  const apiKey =
-    overrides?.apiKey ?? row?.llmApiKey ?? process.env.OPENAI_API_KEY ?? undefined;
+  const apiKey = process.env.OPENAI_API_KEY ?? undefined;
   const baseUrl =
     overrides?.baseUrl ?? row?.llmBaseUrl ?? process.env.OPENAI_BASE_URL ?? undefined;
 
   if (!apiKey) {
     return { ok: false, error: "No API key configured" };
+  }
+
+  if (baseUrl) {
+    try {
+      assertModelBaseUrlAllowed(baseUrl);
+    } catch {
+      return { ok: false, error: "Model base URL is not allowed" };
+    }
   }
 
   const url = baseUrl
@@ -134,14 +130,15 @@ export async function testConnection(
   try {
     const res = await fetch(url, {
       headers: { Authorization: `Bearer ${apiKey}` },
+      redirect: "manual",
     });
 
+    if (res.status >= 300 && res.status < 400) {
+      return { ok: false, error: "Connection test failed" };
+    }
+
     if (!res.ok) {
-      const body = await res.text().catch(() => "");
-      return {
-        ok: false,
-        error: `HTTP ${res.status}${body ? `: ${body.slice(0, 200)}` : ""}`,
-      };
+      return { ok: false, error: "Connection test failed" };
     }
 
     const json = (await res.json()) as { data?: Array<{ id?: string }> };
@@ -150,8 +147,7 @@ export async function testConnection(
       .map((m) => ({ id: m.id }));
 
     return { ok: true, models };
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Connection failed";
-    return { ok: false, error: message };
+  } catch {
+    return { ok: false, error: "Connection test failed" };
   }
 }

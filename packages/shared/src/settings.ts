@@ -1,10 +1,21 @@
 import { z } from "zod";
+import { modelBaseUrlRefinement } from "./model-url-policy.js";
 
-export const ApiKeySourceSchema = z.enum(["settings", "env", "none"]);
+export const ApiKeySourceSchema = z.enum(["env", "none"]);
 export type ApiKeySource = z.infer<typeof ApiKeySourceSchema>;
 
 export const BaseUrlSourceSchema = z.enum(["settings", "env", "none"]);
 export type BaseUrlSource = z.infer<typeof BaseUrlSourceSchema>;
+
+const optionalModelBaseUrl = z
+  .string()
+  .url()
+  .optional()
+  .nullable()
+  .superRefine((value, ctx) => {
+    if (value == null || value === "") return;
+    modelBaseUrlRefinement(value, ctx);
+  });
 
 export const LlmSettingsSchema = z.object({
   hasApiKey: z.boolean(),
@@ -18,8 +29,7 @@ export const LlmSettingsSchema = z.object({
 export type LlmSettings = z.infer<typeof LlmSettingsSchema>;
 
 export const UpdateLlmSettingsSchema = z.object({
-  apiKey: z.string().min(1).optional().nullable(),
-  baseUrl: z.string().url().optional().nullable(),
+  baseUrl: optionalModelBaseUrl,
   defaultModelName: z.string().min(1).optional(),
   defaultTemperature: z.number().min(0).max(2).optional(),
 });
@@ -27,8 +37,14 @@ export const UpdateLlmSettingsSchema = z.object({
 export type UpdateLlmSettingsInput = z.infer<typeof UpdateLlmSettingsSchema>;
 
 export const TestLlmSettingsSchema = z.object({
-  apiKey: z.string().min(1).optional(),
-  baseUrl: z.string().url().optional(),
+  baseUrl: z
+    .string()
+    .url()
+    .optional()
+    .superRefine((value, ctx) => {
+      if (value == null || value === "") return;
+      modelBaseUrlRefinement(value, ctx);
+    }),
 });
 
 export type TestLlmSettingsInput = z.infer<typeof TestLlmSettingsSchema>;

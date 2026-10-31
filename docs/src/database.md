@@ -84,7 +84,7 @@ Singleton row (`id = "default"`) for global LLM configuration.
 | Field | Type | Notes |
 |-------|------|-------|
 | id | string | Fixed `"default"` |
-| llmApiKey | string? | Stored API key (never returned on GET) |
+| llmApiKey | string? | Legacy column; unused — keys come from `OPENAI_API_KEY` only |
 | llmBaseUrl | string? | OpenAI-compatible base URL |
 | defaultModelName | string | Default for new agents (`gpt-4o-mini`) |
 | defaultTemperature | float | Default for new agents (`0.7`) |

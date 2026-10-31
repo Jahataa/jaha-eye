@@ -9,7 +9,7 @@ import {
 import { getBuiltinToolCatalog } from "@jaha-eye/agent-core";
 import { mapAgent } from "../lib/mappers.js";
 import { isAgentReferencedInOrchestrations } from "../services/orchestration-service.js";
-import { startRun } from "../services/run-service.js";
+import { ConcurrentRunLimitError, startRun } from "../services/run-service.js";
 import { getDefaultModelDefaults } from "../services/settings-service.js";
 
 export const agentRoutes: FastifyPluginAsync = async (app) => {
@@ -110,6 +110,9 @@ export const agentRoutes: FastifyPluginAsync = async (app) => {
       const runId = await startRun(req.params.id, parsed.data.input);
       return reply.status(202).send({ runId });
     } catch (error) {
+      if (error instanceof ConcurrentRunLimitError) {
+        return reply.status(409).send({ error: error.message });
+      }
       const message = error instanceof Error ? error.message : "Failed to start run";
       return reply.status(400).send({ error: message });
     }

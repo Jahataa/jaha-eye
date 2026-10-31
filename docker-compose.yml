@@ -2,11 +2,11 @@ services:
   postgres:
     image: postgres:16
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     environment:
       POSTGRES_DB: jaha_eye
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-jaha_eye_dev_secret}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:

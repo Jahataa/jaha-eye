@@ -12,7 +12,7 @@ import {
 } from "@jaha-eye/shared";
 import { mapAgent, mapEvent } from "../lib/mappers.js";
 import { eventBus } from "./event-bus.js";
-import { executeRun, persistRunEvent } from "./run-service.js";
+import { assertAgentConcurrentRunCapacity, executeRun, persistRunEvent } from "./run-service.js";
 
 interface OrchestrationContext {
   cancelled: boolean;
@@ -108,6 +108,8 @@ async function executeNode(
     });
     throw new Error(errorMessage);
   }
+
+  await assertAgentConcurrentRunCapacity(node.agentId, agent.maxConcurrentRuns);
 
   const childRun = await prisma.agentRun.create({
     data: {

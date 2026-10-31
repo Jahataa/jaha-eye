@@ -1,7 +1,7 @@
 import { Agent } from "@strands-agents/sdk";
 import { OpenAIModel } from "@strands-agents/sdk/models/openai";
 import { StrandsAgent } from "@ag-ui/aws-strands";
-import type { AgentDefinition } from "@jaha-eye/shared";
+import { assertModelBaseUrlAllowed, type AgentDefinition } from "@jaha-eye/shared";
 import { resolveTools } from "../tools/registry.js";
 
 export interface AgentFactoryConfig {
@@ -14,6 +14,9 @@ export class AgentFactory {
   async createStrandsAgent(definition: AgentDefinition, agentsByThread: Map<string, Agent>) {
     const defaults = await this.config.resolveLlmDefaults();
     const baseUrl = definition.modelBaseUrl ?? defaults.openaiBaseUrl;
+    if (baseUrl) {
+      assertModelBaseUrlAllowed(baseUrl);
+    }
     const apiKey = defaults.openaiApiKey ?? process.env.OPENAI_API_KEY ?? "not-set";
 
     const model = new OpenAIModel({

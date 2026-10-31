@@ -29,7 +29,7 @@ Check status or logs: `npm run local:status` and `.local-dev/dev.log`.
 
 ```bash
 docker compose up -d
-cp .env.example .env    # set OPENAI_API_KEY (and optionally OPENAI_BASE_URL)
+cp .env.example .env    # set API_TOKEN and OPENAI_API_KEY (and optionally OPENAI_BASE_URL)
 npm install
 npm run db:migrate      # use when creating new Prisma migrations
 npm run dev
