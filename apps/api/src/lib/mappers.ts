@@ -20,6 +20,8 @@ export function mapAgent(agent: Agent): AgentDefinition {
     modelName: agent.modelName,
     modelBaseUrl: agent.modelBaseUrl,
     modelTemperature: agent.modelTemperature,
+    modelContextWindowLimit: agent.modelContextWindowLimit,
+    modelMaxTokens: agent.modelMaxTokens,
     systemPrompt: agent.systemPrompt,
     tools: Array.isArray(agent.tools) ? (agent.tools as string[]) : [],
     defaultRunInput: agent.defaultRunInput,

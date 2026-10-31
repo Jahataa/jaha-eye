@@ -24,6 +24,10 @@ export class AgentFactory {
       apiKey,
       temperature: definition.modelTemperature,
       clientConfig: baseUrl ? { baseURL: baseUrl } : undefined,
+      ...(definition.modelContextWindowLimit != null
+        ? { contextWindowLimit: definition.modelContextWindowLimit }
+        : {}),
+      ...(definition.modelMaxTokens != null ? { maxTokens: definition.modelMaxTokens } : {}),
     });
 
     const tools = resolveTools(definition.tools);
@@ -33,6 +37,7 @@ export class AgentFactory {
       systemPrompt: definition.systemPrompt,
       tools,
       printer: false,
+      ...(definition.modelContextWindowLimit != null ? { contextManager: "auto" as const } : {}),
     });
 
     const strandsAgent = new StrandsAgent({

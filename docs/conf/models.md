@@ -33,6 +33,10 @@ Each agent row stores:
 | `modelName` | `gpt-4o-mini` |
 | `modelBaseUrl` | null (use Settings/env) or custom URL |
 | `modelTemperature` | `0.7` |
+| `modelContextWindowLimit` | null (Strands lookup) or e.g. `32768` for Ollama |
+| `modelMaxTokens` | null (provider default) or max tokens per reply |
+
+When `modelContextWindowLimit` is set, `AgentFactory` passes it to the OpenAI-compatible model as `contextWindowLimit` and enables Strands `contextManager: "auto"` (summarization and tool-result truncation before overflow).
 
 `AgentFactory` validates `modelBaseUrl` before constructing `OpenAIModel`.
 

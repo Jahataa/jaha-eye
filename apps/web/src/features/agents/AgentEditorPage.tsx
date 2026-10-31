@@ -24,6 +24,8 @@ const BLANK_DEFAULTS = {
   selectedTools: [] as string[],
   defaultRunInput: "",
   maxConcurrentRuns: "1",
+  modelContextWindowLimit: "",
+  modelMaxTokens: "",
 };
 
 function groupTools(tools: BuiltinTool[]) {
@@ -67,6 +69,10 @@ export function AgentEditorPage() {
   const [selectedTools, setSelectedTools] = useState<string[]>(BLANK_DEFAULTS.selectedTools);
   const [defaultRunInput, setDefaultRunInput] = useState(BLANK_DEFAULTS.defaultRunInput);
   const [maxConcurrentRuns, setMaxConcurrentRuns] = useState(BLANK_DEFAULTS.maxConcurrentRuns);
+  const [modelContextWindowLimit, setModelContextWindowLimit] = useState(
+    BLANK_DEFAULTS.modelContextWindowLimit,
+  );
+  const [modelMaxTokens, setModelMaxTokens] = useState(BLANK_DEFAULTS.modelMaxTokens);
   const [selectedPresetId, setSelectedPresetId] = useState("");
   const [saveFeedback, setSaveFeedback] = useState<string | null>(null);
 
@@ -90,6 +96,10 @@ export function AgentEditorPage() {
       setSelectedTools(agent.tools);
       setDefaultRunInput(agent.defaultRunInput ?? "");
       setMaxConcurrentRuns(String(agent.maxConcurrentRuns));
+      setModelContextWindowLimit(
+        agent.modelContextWindowLimit != null ? String(agent.modelContextWindowLimit) : "",
+      );
+      setModelMaxTokens(agent.modelMaxTokens != null ? String(agent.modelMaxTokens) : "");
     }
   }, [agent]);
 
@@ -140,6 +150,10 @@ export function AgentEditorPage() {
         tools: selectedTools,
         defaultRunInput: defaultRunInput || null,
         maxConcurrentRuns: Number(maxConcurrentRuns),
+        modelContextWindowLimit: modelContextWindowLimit.trim()
+          ? Number(modelContextWindowLimit)
+          : null,
+        modelMaxTokens: modelMaxTokens.trim() ? Number(modelMaxTokens) : null,
       };
       if (isNew) return api.createAgent(payload);
       return api.updateAgent(id!, payload);
@@ -281,6 +295,39 @@ export function AgentEditorPage() {
             value={modelTemperature}
             onChange={(e) => setModelTemperature(e.target.value)}
           />
+        </div>
+        <div>
+          <div className="flex items-center gap-2">
+            <Label>Context window (tokens)</Label>
+            <DocHelp feature="agentModels" />
+          </div>
+          <Input
+            type="number"
+            min="1024"
+            step="1024"
+            value={modelContextWindowLimit}
+            onChange={(e) => setModelContextWindowLimit(e.target.value)}
+            placeholder="32768"
+          />
+          <p className="mt-1 text-xs text-muted">
+            Total input + output capacity for this model. Match your server (e.g. Ollama{" "}
+            <span className="hud-mono">32768</span>). When set, Strands auto-compresses long tool
+            results before the provider rejects the request.
+          </p>
+        </div>
+        <div>
+          <Label>Max output tokens</Label>
+          <Input
+            type="number"
+            min="1"
+            step="256"
+            value={modelMaxTokens}
+            onChange={(e) => setModelMaxTokens(e.target.value)}
+            placeholder="4096"
+          />
+          <p className="mt-1 text-xs text-muted">
+            Optional cap on each model reply. Leave blank for provider default.
+          </p>
         </div>
         <div>
           <Label>Max concurrent runs</Label>
