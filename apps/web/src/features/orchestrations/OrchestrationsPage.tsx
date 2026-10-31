@@ -5,6 +5,7 @@ import { api } from "../../lib/api";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
 import { Badge } from "../../components/ui/badge";
+import { DocHelp } from "../docs/DocHelp";
 
 export function OrchestrationsPage() {
   const navigate = useNavigate();
@@ -30,7 +31,10 @@ export function OrchestrationsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="hud-kicker text-base text-foreground">Orchestrations</h1>
+        <div className="flex items-center gap-2">
+          <h1 className="hud-kicker text-base text-foreground">Orchestrations</h1>
+          <DocHelp feature="orchestrations" />
+        </div>
         <Button onClick={() => navigate("/orchestrations/new")}>New orchestration</Button>
       </div>
 

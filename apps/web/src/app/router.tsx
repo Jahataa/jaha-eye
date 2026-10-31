@@ -9,6 +9,7 @@ import { OrchestrationsPage } from "../features/orchestrations/OrchestrationsPag
 import { OrchestrationEditorPage } from "../features/orchestrations/OrchestrationEditorPage";
 import { SettingsPage } from "../features/settings/SettingsPage";
 import { SchedulesPage } from "../features/schedules/SchedulesPage";
+import { DocsPage } from "../features/docs/DocsPage";
 
 export const router = createBrowserRouter([
   {
@@ -26,6 +27,7 @@ export const router = createBrowserRouter([
       { path: "runs", element: <RunsPage /> },
       { path: "runs/:id", element: <RunDetailPage /> },
       { path: "settings", element: <SettingsPage /> },
+      { path: "docs/*", element: <DocsPage /> },
     ],
   },
 ]);

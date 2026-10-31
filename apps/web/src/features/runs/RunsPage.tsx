@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { api } from "../../lib/api";
 import { Card } from "../../components/ui/card";
 import { Badge } from "../../components/ui/badge";
+import { DocHelp } from "../docs/DocHelp";
 
 function runLabel(
   run: { agentId: string | null; orchestrationId: string | null },
@@ -32,7 +33,10 @@ export function RunsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="hud-kicker text-base text-foreground">Runs</h1>
+      <div className="flex items-center gap-2">
+        <h1 className="hud-kicker text-base text-foreground">Runs</h1>
+        <DocHelp feature="runsList" />
+      </div>
 
       {runs.length === 0 ? (
         <Card className="text-muted">No runs yet.</Card>

@@ -5,6 +5,7 @@ import { api } from "../../lib/api";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
 import { Badge } from "../../components/ui/badge";
+import { DocHelp } from "../docs/DocHelp";
 
 export function AgentsPage() {
   const navigate = useNavigate();
@@ -26,7 +27,10 @@ export function AgentsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="hud-kicker text-base text-foreground">Agents</h1>
+        <div className="flex items-center gap-2">
+          <h1 className="hud-kicker text-base text-foreground">Agents</h1>
+          <DocHelp feature="agentsList" />
+        </div>
         <Button onClick={() => navigate("/agents/new")}>New agent</Button>
       </div>
 

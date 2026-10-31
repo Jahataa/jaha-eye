@@ -10,6 +10,7 @@ import { Textarea } from "../../components/ui/textarea";
 import { Card } from "../../components/ui/card";
 import { ToolCard } from "../../components/tools/ToolCard";
 import { ScheduleSection } from "../schedules/ScheduleSection";
+import { DocHelp } from "../docs/DocHelp";
 
 const BLANK_DEFAULTS = {
   name: "",
@@ -188,14 +189,20 @@ export function AgentEditorPage() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-      <h1 className="hud-kicker text-base text-foreground">
-        {isNew ? "New agent" : "Edit agent"}
-      </h1>
+      <div className="flex items-center gap-2">
+        <h1 className="hud-kicker text-base text-foreground">
+          {isNew ? "New agent" : "Edit agent"}
+        </h1>
+        <DocHelp feature="agentsList" />
+      </div>
 
       <Card className="space-y-4">
         {isNew && (
           <div>
-            <Label>Start from template</Label>
+            <div className="flex items-center gap-2">
+              <Label>Start from template</Label>
+              <DocHelp feature="agentPresets" />
+            </div>
             <select
               className="hud-mono mt-1 w-full border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent/60"
               value={selectedPresetId}
@@ -230,7 +237,10 @@ export function AgentEditorPage() {
         </div>
 
         <div>
-          <Label>Model provider</Label>
+          <div className="flex items-center gap-2">
+            <Label>Model provider</Label>
+            <DocHelp feature="agentModels" />
+          </div>
           <select
             className="hud-mono mt-1 w-full border border-border bg-background px-3 py-2 text-sm outline-none focus:border-accent/60"
             value={modelProvider}
@@ -287,7 +297,10 @@ export function AgentEditorPage() {
         </div>
 
         <div>
-          <Label>Tools</Label>
+          <div className="flex items-center gap-2">
+            <Label>Tools</Label>
+            <DocHelp feature="agentTools" />
+          </div>
           {toolGroups.safe.length > 0 && (
             <div className="mt-2 space-y-2">
               <p className="text-xs font-medium uppercase tracking-wide text-muted">Safe</p>

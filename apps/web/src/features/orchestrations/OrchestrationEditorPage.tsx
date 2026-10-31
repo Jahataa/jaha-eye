@@ -17,6 +17,7 @@ import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { Textarea } from "../../components/ui/textarea";
 import { Card } from "../../components/ui/card";
+import { DocHelp } from "../docs/DocHelp";
 import { OrchestrationCanvas, connectEdge } from "./OrchestrationCanvas";
 import { OrchestrationNodeInspector } from "./OrchestrationNodeInspector";
 import { flowToGraph, graphToFlow, newNodeId, type AgentNodeData } from "./graph-utils";
@@ -293,9 +294,12 @@ export function OrchestrationEditorPage() {
   return (
     <div className="flex h-[calc(100vh-6.5rem)] flex-col gap-4">
       <div className="flex items-center justify-between">
-        <h1 className="hud-kicker text-base text-foreground">
-          {isNew ? "New orchestration" : "Edit orchestration"}
-        </h1>
+        <div className="flex items-center gap-2">
+          <h1 className="hud-kicker text-base text-foreground">
+            {isNew ? "New orchestration" : "Edit orchestration"}
+          </h1>
+          <DocHelp feature="orchestrations" />
+        </div>
         <div className="flex gap-2">
           <Button
             onClick={() => saveMutation.mutate()}

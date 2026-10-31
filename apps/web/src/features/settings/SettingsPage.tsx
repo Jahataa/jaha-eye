@@ -5,6 +5,7 @@ import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { Card } from "../../components/ui/card";
 import { useSettings, useTestSettings, useUpdateSettings } from "./queries";
+import { DocHelp } from "../docs/DocHelp";
 
 export function SettingsPage() {
   const { data: settings, isLoading } = useSettings();
@@ -85,7 +86,11 @@ export function SettingsPage() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-      <h1 className="hud-kicker text-base text-foreground">Settings</h1>
+      <div className="flex items-center gap-2">
+        <h1 className="hud-kicker text-base text-foreground">Settings</h1>
+        <DocHelp feature="settingsModels" />
+        <DocHelp feature="settingsEnvironment" />
+      </div>
 
       <Card className="space-y-4">
         <div>

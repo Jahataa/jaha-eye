@@ -9,6 +9,7 @@ import { Badge } from "../../components/ui/badge";
 import { EventTimeline } from "../../components/events/EventTimeline";
 import { useRunStream } from "../../hooks/use-run-stream";
 import { OrchestrationRunView } from "./OrchestrationRunView";
+import { DocHelp } from "../docs/DocHelp";
 
 const TERMINAL = new Set(["completed", "failed", "cancelled"]);
 
@@ -128,7 +129,10 @@ export function RunDetailPage() {
       )}
 
       <Card>
-        <CardTitle>{isOrchestration ? "Parent timeline" : "Execution timeline"}</CardTitle>
+        <div className="flex items-center gap-2">
+          <CardTitle>{isOrchestration ? "Parent timeline" : "Execution timeline"}</CardTitle>
+          <DocHelp feature="runEvents" />
+        </div>
         <div className="mt-3">
           <EventTimeline events={events} live={isLive} />
         </div>

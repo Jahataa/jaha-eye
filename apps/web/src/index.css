@@ -101,3 +101,15 @@ body {
 .react-flow__node.selected .agent-node {
   box-shadow: 0 0 12px rgb(125 249 255 / 0.35);
 }
+
+.hud-prose {
+  font-family: var(--font-sans);
+}
+
+.hud-prose hr {
+  @apply my-8 border-border;
+}
+
+.hud-prose strong {
+  @apply font-semibold text-foreground;
+}

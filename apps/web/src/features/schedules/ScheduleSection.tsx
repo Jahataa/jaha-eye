@@ -14,6 +14,7 @@ import {
   useSchedules,
 } from "./queries";
 import { scheduleTargetLabel, type FixedScheduleTarget } from "./schedule-utils";
+import { DocHelp } from "../docs/DocHelp";
 
 function nextFirePreview(expression: string): string {
   if (!isValidCronExpression(expression)) return "—";
@@ -73,7 +74,10 @@ export function ScheduleSection({ fixedTarget }: ScheduleSectionProps) {
   return (
     <Card className="space-y-3">
       <div className="flex items-center justify-between">
-        <p className="hud-kicker">Schedules</p>
+        <div className="flex items-center gap-2">
+          <p className="hud-kicker">Schedules</p>
+          <DocHelp feature="schedules" />
+        </div>
         <Button variant="outline" className="h-8 px-3 text-xs" onClick={openCreate}>
           Add schedule
         </Button>

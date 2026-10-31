@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { isValidCronExpression, nextCronOccurrence, type Schedule } from "@jaha-eye/shared";
 import { api } from "../../lib/api";
 import { Button } from "../../components/ui/button";
+import { DocHelp } from "../docs/DocHelp";
 import { Card } from "../../components/ui/card";
 import { Checkbox } from "../../components/ui/checkbox";
 import { ScheduleDialog } from "./ScheduleDialog";
@@ -68,7 +69,10 @@ export function SchedulesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="hud-kicker text-base text-foreground">Schedules</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="hud-kicker text-base text-foreground">Schedules</h1>
+            <DocHelp feature="schedules" />
+          </div>
           <p className="mt-1 text-sm text-muted">
             Cron jobs fire only while this UI is open, using your local clock.
           </p>

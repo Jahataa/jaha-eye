@@ -4,6 +4,7 @@ import { api } from "../../lib/api";
 import { cn } from "../../lib/utils";
 import { Card, CardTitle } from "../../components/ui/card";
 import { Badge } from "../../components/ui/badge";
+import { DocHelp } from "../docs/DocHelp";
 
 function isToday(date: Date | string | null) {
   if (!date) return false;
@@ -85,7 +86,10 @@ export function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="hud-kicker text-base text-foreground">Dashboard</h1>
+      <div className="flex items-center gap-2">
+        <h1 className="hud-kicker text-base text-foreground">Dashboard</h1>
+        <DocHelp feature="dashboard" />
+      </div>
 
       <div className="grid grid-cols-3 gap-4">
         <StatInstrument label="Running" value={running} unit="Active" showRing />

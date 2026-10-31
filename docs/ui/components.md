@@ -4,8 +4,8 @@
 
 | Component | Role |
 |-----------|------|
-| `AppShell` | Top bar + sidebar + main content area; mounts `ScheduleTicker`; sidebar includes Orchestrations and Schedules nav |
-| `HudTopBar` | Local clock + resolved IANA timezone label, active-run count (top-level only), live activity line (`SYS // …`) |
+| `AppShell` | Top bar + sidebar + main content area; mounts `ScheduleTicker`, `DocsDrawer`, and global doc search; sidebar includes Orchestrations and Schedules nav |
+| `HudTopBar` | Local clock + resolved IANA timezone label, active-run count (top-level only), live activity line (`SYS // …`), **Docs** link (top-right), search shortcut |
 | Sidebar callsign | `JAHA-EYE // ONLINE` with slow cyan pulse |
 
 ## Feature components
@@ -19,6 +19,7 @@
 | `components/runs/` | Run table, run detail header, orchestration graph view, parent/child tree |
 | `features/schedules/` | `ScheduleTicker` (background fire while UI open), `SchedulesPage`, `ScheduleSection` (entity editors), `ScheduleDialog`, cron presets |
 | `components/events/` | `EventTimeline` with vertical trace, cyan nodes, live scan row; tool results shown inline |
+| `features/docs/` | `DocsPage`, `DocsDrawer`, `DocHelp` (? buttons on feature screens), `MarkdownView`, build-time registry from `docs/**/*.md` |
 
 ## Schedule ticker
 

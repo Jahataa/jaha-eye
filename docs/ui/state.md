@@ -22,8 +22,9 @@ Mutations invalidate relevant queries after create/update/delete/run.
 `apps/web/src/stores/ui-store.ts`:
 
 - Selected agent id (optional)
-- Dialog open/close flags
 - `activity` — current run activity sentence for the top bar (`SYS // …`); set by `useRunStream`, cleared on unmount or terminal run
+- `docsDrawer` — `{ slug, anchor? }` when the contextual docs slide-over is open; `openDocDrawer` / `closeDocDrawer`
+- `docsSearchOpen` — command-palette doc search (also toggled from the top bar and `⌘K` / `Ctrl+K`)
 
 Do not put server data in Zustand.
 

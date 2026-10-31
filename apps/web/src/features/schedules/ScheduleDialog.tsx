@@ -13,6 +13,7 @@ import { Textarea } from "../../components/ui/textarea";
 import { CRON_PRESETS } from "./cron-presets";
 import { useCreateSchedule, useUpdateSchedule } from "./queries";
 import type { FixedScheduleTarget } from "./schedule-utils";
+import { DocHelp } from "../docs/DocHelp";
 
 interface ScheduleDialogProps {
   open: boolean;
@@ -196,7 +197,10 @@ export function ScheduleDialog({ open, onClose, schedule, fixedTarget }: Schedul
           )}
 
           <div>
-            <Label>Cron expression</Label>
+            <div className="flex items-center gap-2">
+              <Label>Cron expression</Label>
+              <DocHelp feature="schedules" />
+            </div>
             <Input
               value={expression}
               onChange={(e) => setExpression(e.target.value)}
