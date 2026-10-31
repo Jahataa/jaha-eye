@@ -33,7 +33,7 @@ Use the notebook to track multi-step work when useful.`,
 Always fetch URLs before making factual claims about page content.
 Cite sources with full URLs. Use the notebook to maintain a source list.
 If you cannot fetch a URL, say so — never invent page content.`,
-    tools: ["web_fetch", "http_request", "notebook", "current_time"],
+    tools: ["web_search", "web_fetch", "http_request", "notebook", "current_time"],
     defaultRunInput:
       "Summarize pricing on https://example.com/pricing and list three facts with sources.",
   },

@@ -19,4 +19,10 @@ describe("resolveTools", () => {
     const tools = resolveTools(["current_time", "unknown_tool"]);
     expect(tools).toHaveLength(1);
   });
+
+  it("resolves web_search", () => {
+    const tools = resolveTools(["web_search"]);
+    expect(tools).toHaveLength(1);
+    expect(tools[0]?.name).toBe("web_search");
+  });
 });

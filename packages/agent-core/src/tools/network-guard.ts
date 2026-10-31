@@ -1,14 +1,18 @@
 import dns from "node:dns/promises";
 
-export function parseAllowedHosts(): Set<string> {
+export const ALLOW_ALL_HOSTS = "all";
+
+export type AllowedHosts = typeof ALLOW_ALL_HOSTS | Set<string>;
+
+export function parseAllowedHosts(): AllowedHosts {
   const raw = process.env.HTTP_ALLOWED_HOSTS;
   if (!raw?.trim()) return new Set();
-  return new Set(
-    raw
-      .split(",")
-      .map((h) => h.trim().toLowerCase())
-      .filter(Boolean),
-  );
+  const hosts = raw
+    .split(",")
+    .map((h) => h.trim().toLowerCase())
+    .filter(Boolean);
+  if (hosts.includes(ALLOW_ALL_HOSTS)) return ALLOW_ALL_HOSTS;
+  return new Set(hosts);
 }
 
 function parseIpv4(host: string): number[] | null {
@@ -61,8 +65,8 @@ async function assertResolvedAddressesArePublic(host: string): Promise<void> {
   }
 }
 
-export async function assertAllowedUrl(url: string, allowed: Set<string>): Promise<void> {
-  if (allowed.size === 0) {
+export async function assertAllowedUrl(url: string, allowed: AllowedHosts): Promise<void> {
+  if (allowed !== ALLOW_ALL_HOSTS && allowed.size === 0) {
     throw new Error("HTTP_ALLOWED_HOSTS is not configured — network tools are disabled");
   }
 
@@ -73,7 +77,7 @@ export async function assertAllowedUrl(url: string, allowed: Set<string>): Promi
     throw new Error(`Invalid URL: ${url}`);
   }
 
-  if (!allowed.has(host)) {
+  if (allowed !== ALLOW_ALL_HOSTS && !allowed.has(host)) {
     throw new Error(`Host "${host}" is not in HTTP_ALLOWED_HOSTS allowlist`);
   }
 

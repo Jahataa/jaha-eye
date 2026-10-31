@@ -66,4 +66,13 @@ export const BUILTIN_TOOL_CATALOG: BuiltinTool[] = [
     risk: "network",
     vended: true,
   },
+  {
+    id: "web_search",
+    name: "Web Search",
+    description:
+      "Searches the web via local SearXNG and returns titles, URLs, and snippets (pair with web_fetch for page content)",
+    category: "network",
+    risk: "network",
+    vended: false,
+  },
 ];

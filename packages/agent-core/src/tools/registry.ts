@@ -5,6 +5,7 @@ import { BUILTIN_TOOL_CATALOG } from "@jaha-eye/shared";
 import { calculatorTool } from "./calculator.js";
 import { currentTimeTool } from "./current-time.js";
 import { guardedHttpRequest, guardedWebFetch } from "./network-tools.js";
+import { webSearchTool } from "./web-search.js";
 
 const TOOL_MAP: Record<string, Tool> = {
   current_time: currentTimeTool,
@@ -13,6 +14,7 @@ const TOOL_MAP: Record<string, Tool> = {
   notebook,
   http_request: guardedHttpRequest,
   web_fetch: guardedWebFetch,
+  web_search: webSearchTool,
 };
 
 export function getBuiltinToolCatalog() {

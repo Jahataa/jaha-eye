@@ -6,7 +6,7 @@ services:
     environment:
       POSTGRES_DB: jaha_eye
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-jaha_eye_dev_secret}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:

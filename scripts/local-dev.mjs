@@ -22,6 +22,7 @@ const ENV_FILE = join(ROOT, ".env");
 const ENV_EXAMPLE = join(ROOT, ".env.example");
 
 const DEFAULT_PORTS = { api: 4000, web: 5173 };
+const COMPOSE_ARGS = ["-f", "docker-compose.yml", "-f", "docker-compose.tools.yml"];
 const READINESS_TIMEOUT_MS = 30_000;
 const READINESS_INTERVAL_MS = 500;
 
@@ -287,8 +288,8 @@ async function cmdStart() {
   ensureEnvFile();
   warnIfPlaceholderApiKey();
 
-  log("Starting Postgres...");
-  run("docker", ["compose", "up", "-d", "--wait"]);
+  log("Starting Postgres and tool services (SearXNG)...");
+  run("docker", ["compose", ...COMPOSE_ARGS, "up", "-d", "--wait"]);
 
   log("Installing dependencies...");
   run("npm", ["install"]);
@@ -329,9 +330,9 @@ function cmdStop() {
     log("Dev servers were not running.");
   }
 
-  log("Stopping Postgres...");
+  log("Stopping Postgres and tool services...");
   try {
-    execSync("docker compose down", { cwd: ROOT, stdio: "inherit" });
+    execSync(`docker compose ${COMPOSE_ARGS.join(" ")} down`, { cwd: ROOT, stdio: "inherit" });
   } catch {
     warn("docker compose down failed. Is Docker running?");
   }

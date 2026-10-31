@@ -4,8 +4,6 @@ import { webFetch } from "@strands-agents/sdk/vended-tools/web-fetch";
 import { z } from "zod";
 import { assertAllowedUrl, parseAllowedHosts, rejectRedirectStatus } from "./network-guard.js";
 
-const allowedHosts = parseAllowedHosts();
-
 const httpInputSchema = z.object({
   method: z.enum(["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"]),
   url: z.string().url(),
@@ -18,7 +16,7 @@ async function guardedFetch(
   url: string,
   init: RequestInit & { signal?: AbortSignal },
 ): Promise<Response> {
-  await assertAllowedUrl(url, allowedHosts);
+  await assertAllowedUrl(url, parseAllowedHosts());
   const response = await fetch(url, { ...init, redirect: "manual" });
   rejectRedirectStatus(response.status);
   return response;

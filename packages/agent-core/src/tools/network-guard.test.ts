@@ -1,6 +1,6 @@
 import dns from "node:dns/promises";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { assertAllowedUrl, parseAllowedHosts } from "./network-guard.js";
+import { ALLOW_ALL_HOSTS, assertAllowedUrl, parseAllowedHosts } from "./network-guard.js";
 
 describe("parseAllowedHosts", () => {
   afterEach(() => {
@@ -15,6 +15,11 @@ describe("parseAllowedHosts", () => {
   it("parses comma-separated hostnames", () => {
     vi.stubEnv("HTTP_ALLOWED_HOSTS", "Example.com, httpbin.org");
     expect(parseAllowedHosts()).toEqual(new Set(["example.com", "httpbin.org"]));
+  });
+
+  it("returns allow-all when set to all (case-insensitive)", () => {
+    vi.stubEnv("HTTP_ALLOWED_HOSTS", " ALL ");
+    expect(parseAllowedHosts()).toBe(ALLOW_ALL_HOSTS);
   });
 });
 
@@ -42,6 +47,23 @@ describe("assertAllowedUrl", () => {
     await expect(
       assertAllowedUrl("https://evil.example", new Set(["evil.example"])),
     ).rejects.toThrow(/not allowed/);
+  });
+
+  it("allows any public host when allow-all", async () => {
+    vi.spyOn(dns, "lookup").mockResolvedValue([{ address: "93.184.216.34", family: 4 }] as never);
+    await expect(
+      assertAllowedUrl("https://technopolis.bg", ALLOW_ALL_HOSTS),
+    ).resolves.toBeUndefined();
+  });
+
+  it("still rejects private addresses when allow-all", async () => {
+    vi.spyOn(dns, "lookup").mockResolvedValue([{ address: "10.0.0.5", family: 4 }] as never);
+    await expect(assertAllowedUrl("https://internal.example", ALLOW_ALL_HOSTS)).rejects.toThrow(
+      /not allowed/,
+    );
+    await expect(assertAllowedUrl("http://127.0.0.1", ALLOW_ALL_HOSTS)).rejects.toThrow(
+      /not allowed/,
+    );
   });
 
   it("rejects link-local IP literals in the URL", async () => {
