@@ -2,6 +2,8 @@
 
 Human-readable docs for the jaha-eye operator console. Coding agents should also read [AGENTS.md](../AGENTS.md) and [.cursor/memory/](../.cursor/memory/).
 
+README screenshots for GitHub live under [`assets/readme/`](assets/readme/).
+
 ## Structure
 
 | Folder | Layer |
