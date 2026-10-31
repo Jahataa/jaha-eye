@@ -11,3 +11,6 @@ packages/database/.env
 coverage/
 *.tgz
 *.tsbuildinfo
+
+# ECC Cursor installer state (machine-local; regenerated on install)
+.cursor/ecc-install-state.json
