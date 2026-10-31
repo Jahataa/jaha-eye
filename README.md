@@ -151,6 +151,10 @@ packages/agent-core   AgentFactory, StrandsRuntime, tools, event normalizer
 
 See [planning roadmap](docs/planning/roadmap.md).
 
+## License
+
+[MIT](LICENSE) © 2026 Jahataa
+
 ---
 
 **Node.js 22+** · npm workspaces + Turborepo · `@jaha-eye/*` packages
