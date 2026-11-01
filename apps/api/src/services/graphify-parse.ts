@@ -7,7 +7,7 @@ type GraphEdge = {
   relation?: string;
 };
 
-type GraphJson = {
+export type GraphJson = {
   nodes?: GraphNode[];
   edges?: GraphEdge[];
 };

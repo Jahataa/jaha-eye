@@ -4,7 +4,7 @@ import { constants } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { GraphifyRebuildJob, GraphifyStatus } from "@jaha-eye/shared";
-import { countPostgresNodes, parseDatabaseSnapshot } from "./graphify-parse.js";
+import { countPostgresNodes, parseDatabaseSnapshot, type GraphJson } from "./graphify-parse.js";
 
 const apiDir = fileURLToPath(new URL(".", import.meta.url));
 const repoRoot = resolve(apiDir, "../../../..");
@@ -62,7 +62,7 @@ async function readGraphSnapshot(): Promise<{
   database: ReturnType<typeof parseDatabaseSnapshot>;
 }> {
   const raw = await readFile(graphPath, "utf8");
-  const graph = JSON.parse(raw) as { nodes?: unknown[]; edges?: unknown[] };
+  const graph = JSON.parse(raw) as GraphJson;
   const st = await stat(graphPath);
   const pgCount = countPostgresNodes(graph);
   const nodeCount = graph.nodes?.length ?? 0;
