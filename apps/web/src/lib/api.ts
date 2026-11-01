@@ -18,6 +18,16 @@ import type {
   TestLlmSettingsInput,
   GraphifyRebuildRequest,
   GraphifyStatus,
+  BrainGraph,
+  CreateOfficeTaskInput,
+  CreateRoutineInput,
+  CreateSkillInput,
+  OfficeTask,
+  OfficeUsage,
+  Routine,
+  Skill,
+  UpdateRoutineInput,
+  UpdateSkillInput,
   UpdateAgentInput,
   UpdateLlmSettingsInput,
   UpdateOrchestrationInput,
@@ -113,6 +123,55 @@ export const api = {
       method: "POST",
       body: JSON.stringify(data),
     }),
+  getOfficeTasks: () => request<OfficeTask[]>("/api/office/tasks"),
+  createOfficeTask: (data: CreateOfficeTaskInput) =>
+    request<OfficeTask>("/api/office/tasks", { method: "POST", body: JSON.stringify(data) }),
+  approveOfficeTask: (id: string) =>
+    request<OfficeTask>(`/api/office/tasks/${id}/approve`, { method: "POST" }),
+  rejectOfficeTask: (id: string, feedback: string) =>
+    request<OfficeTask>(`/api/office/tasks/${id}/reject`, {
+      method: "POST",
+      body: JSON.stringify({ feedback }),
+    }),
+  reviseOfficeTask: (id: string, feedback: string) =>
+    request<OfficeTask>(`/api/office/tasks/${id}/revise`, {
+      method: "POST",
+      body: JSON.stringify({ feedback }),
+    }),
+  getOfficeSkills: () => request<Skill[]>("/api/office/skills"),
+  createOfficeSkill: (data: CreateSkillInput) =>
+    request<Skill>("/api/office/skills", { method: "POST", body: JSON.stringify(data) }),
+  updateOfficeSkill: (id: string, data: UpdateSkillInput) =>
+    request<Skill>(`/api/office/skills/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
+  deleteOfficeSkill: (id: string) =>
+    request<void>(`/api/office/skills/${id}`, { method: "DELETE" }),
+  getOfficeRoutines: () => request<Routine[]>("/api/office/routines"),
+  createOfficeRoutine: (data: CreateRoutineInput) =>
+    request<Routine>("/api/office/routines", { method: "POST", body: JSON.stringify(data) }),
+  updateOfficeRoutine: (id: string, data: UpdateRoutineInput) =>
+    request<Routine>(`/api/office/routines/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
+  fireOfficeRoutine: async (id: string, slot: LocalMinuteSlot) => {
+    const res = await fetch(`/api/office/routines/${id}/fire`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ slot }),
+    });
+    if (res.status === 409) return { skipped: true as const };
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.error ?? `Request failed: ${res.status}`);
+    }
+    return res.json() as Promise<{ task: OfficeTask }>;
+  },
+  officeTick: () => request<{ ok: true }>("/api/office/tick", { method: "POST" }),
+  getOfficeBrain: () => request<BrainGraph>("/api/office/brain"),
+  getOfficeUsage: () => request<OfficeUsage>("/api/office/usage"),
+  getOfficeLessons: (agentId?: string) =>
+    request<Array<{ id: string; agentId: string; kind: string; text: string }>>(
+      agentId ? `/api/office/lessons?agentId=${agentId}` : "/api/office/lessons",
+    ),
+  deleteOfficeLesson: (id: string) =>
+    request<void>(`/api/office/lessons/${id}`, { method: "DELETE" }),
   fireSchedule: async (
     id: string,
     slot: LocalMinuteSlot,

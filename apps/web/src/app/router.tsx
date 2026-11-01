@@ -11,6 +11,8 @@ import { SettingsPage } from "../features/settings/SettingsPage";
 import { SchedulesPage } from "../features/schedules/SchedulesPage";
 import { DocsPage } from "../features/docs/DocsPage";
 import { GraphifyPage } from "../features/graphify/GraphifyPage";
+import { OfficePage } from "../features/office/OfficePage";
+import { OfficeSkillsPage } from "../features/office/OfficeSkillsPage";
 
 export const router = createBrowserRouter([
   {
@@ -18,6 +20,8 @@ export const router = createBrowserRouter([
     element: <AppShell />,
     children: [
       { index: true, element: <DashboardPage /> },
+      { path: "office", element: <OfficePage /> },
+      { path: "office/skills", element: <OfficeSkillsPage /> },
       { path: "agents", element: <AgentsPage /> },
       { path: "agents/new", element: <AgentEditorPage /> },
       { path: "agents/:id", element: <AgentEditorPage /> },

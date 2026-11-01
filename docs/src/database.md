@@ -12,6 +12,9 @@ Prisma schema is the source of truth.
 | name | string | Display name |
 | slug | string | Unique URL slug |
 | description | string? | Optional |
+| department | string? | Optional Office pod label (blank → General) |
+| brief | text? | Operator brief injected by Office composer |
+| isDepartmentLead | boolean | Team mode lead for department |
 | status | enum | `active` \| `disabled` |
 | modelProvider | string | e.g. `openai` |
 | modelName | string | e.g. `gpt-4o-mini` |
@@ -31,6 +34,7 @@ Prisma schema is the source of truth.
 | description | string? | Optional |
 | status | enum | `active` \| `disabled` |
 | graph | json | Nodes, edges, canvas positions (DAG) |
+| hidden | boolean | Ephemeral team graphs omitted from list UI |
 | defaultRunInput | string? | Default message when Run is clicked |
 
 ### AgentRun
@@ -88,8 +92,21 @@ Singleton row (`id = "default"`) for global LLM configuration.
 | llmBaseUrl | string? | OpenAI-compatible base URL |
 | defaultModelName | string | Default for new agents (`gpt-4o-mini`) |
 | defaultTemperature | float | Default for new agents (`0.7`) |
+| usageBudgetTokens | int? | Optional rolling budget for Office usage gauge |
 
 First GET returns effective env values without writing a row; first PATCH upserts the singleton.
+
+### Office tables (Phase 1 operator layer)
+
+| Model | Purpose |
+|-------|---------|
+| `OfficeTask` | Routed operator work item (status machine, draft/result, schedule, team parent run) |
+| `OfficeTaskRun` | Links task ↔ `AgentRun` with mode (`normal`, `draft`, `approve`, `revise`, `team`) |
+| `Skill` | Named prompt snippets bound to agents or departments |
+| `Lesson` | Standing rules learned from revise/reject feedback |
+| `BrainNote` | Deliverables + wiki links for Office brain graph |
+| `Routine` | UI-ticked cron tasks (department, agent, text, `needsOk`, team) |
+| `RunUsage` | Per-run token estimate for usage gauge |
 
 ## Commands
 

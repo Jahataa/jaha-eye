@@ -8,6 +8,13 @@ import type { AgentDefinition, PersistedAgentEvent, RunTrigger } from "@jaha-eye
 import { eventBus } from "./event-bus.js";
 import { getEffectiveLlmConfig } from "./settings-service.js";
 import { mapAgent, mapEvent } from "../lib/mappers.js";
+import {
+  applyPromptComposers,
+  emitRunSettled,
+  setRunContext,
+  takeRunContext,
+  type RunExecutionContext,
+} from "./run-hooks.js";
 
 const factory = new AgentFactory({
   resolveLlmDefaults: getEffectiveLlmConfig,
@@ -101,13 +108,17 @@ export async function executeRun(
   definition: AgentDefinition,
   message: string,
 ): Promise<void> {
+  const runContext = takeRunContext(runId);
+
   await prisma.agentRun.update({
     where: { id: runId },
     data: { status: "running", startedAt: new Date() },
   });
 
+  const composedDefinition = await applyPromptComposers(definition, runContext);
+
   try {
-    for await (const event of runtime.stream(definition, { runId, message })) {
+    for await (const event of runtime.stream(composedDefinition, { runId, message })) {
       await persistRunEvent(runId, event);
 
       if (event.type === "RUN_FINISHED") {
@@ -158,14 +169,26 @@ export async function executeRun(
       },
     });
   } finally {
+    try {
+      await emitRunSettled(runId);
+    } catch (error) {
+      console.error("[run-service] emitRunSettled failed", error);
+    }
     eventBus.close(runId);
   }
 }
+
+export type StartRunOptions = {
+  context?: RunExecutionContext;
+  /** Runs after the run row exists and before executeRun is scheduled (e.g. link office task). */
+  beforeExecute?: (runId: string) => Promise<void>;
+};
 
 export async function startRun(
   agentId: string,
   input: string,
   trigger: RunTrigger = "manual",
+  options?: StartRunOptions,
 ): Promise<string> {
   const agent = await prisma.agent.findUniqueOrThrow({ where: { id: agentId } });
   if (agent.status === "disabled") {
@@ -182,6 +205,14 @@ export async function startRun(
       input: { message: input },
     },
   });
+
+  if (options?.context) {
+    setRunContext(run.id, options.context);
+  }
+
+  if (options?.beforeExecute) {
+    await options.beforeExecute(run.id);
+  }
 
   const definition = mapAgent(agent);
   void executeRun(run.id, definition, input);

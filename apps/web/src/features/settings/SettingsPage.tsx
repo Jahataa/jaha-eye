@@ -15,6 +15,7 @@ export function SettingsPage() {
   const [baseUrl, setBaseUrl] = useState("");
   const [defaultModelName, setDefaultModelName] = useState("gpt-4o-mini");
   const [defaultTemperature, setDefaultTemperature] = useState("0.7");
+  const [usageBudgetTokens, setUsageBudgetTokens] = useState("");
   const [availableModels, setAvailableModels] = useState<LlmModel[]>([]);
   const [saveFeedback, setSaveFeedback] = useState<string | null>(null);
   const [testFeedback, setTestFeedback] = useState<string | null>(null);
@@ -24,6 +25,9 @@ export function SettingsPage() {
       setBaseUrl(settings.baseUrl ?? "");
       setDefaultModelName(settings.defaultModelName);
       setDefaultTemperature(String(settings.defaultTemperature));
+      setUsageBudgetTokens(
+        settings.usageBudgetTokens != null ? String(settings.usageBudgetTokens) : "",
+      );
     }
   }, [settings]);
 
@@ -63,10 +67,12 @@ export function SettingsPage() {
   async function handleSave() {
     setSaveFeedback(null);
     try {
+      const budgetTrimmed = usageBudgetTokens.trim();
       const payload = {
         defaultModelName,
         defaultTemperature: Number(defaultTemperature),
         baseUrl: baseUrl.trim() ? baseUrl.trim() : null,
+        usageBudgetTokens: budgetTrimmed ? Number(budgetTrimmed) : null,
       };
 
       await updateMutation.mutateAsync(payload);
@@ -156,6 +162,17 @@ export function SettingsPage() {
             max="2"
             value={defaultTemperature}
             onChange={(e) => setDefaultTemperature(e.target.value)}
+          />
+        </div>
+
+        <div>
+          <Label>Office usage budget (tokens, rolling 24h)</Label>
+          <Input
+            type="number"
+            min="1"
+            value={usageBudgetTokens}
+            onChange={(e) => setUsageBudgetTokens(e.target.value)}
+            placeholder="Optional — powers Office usage gauge"
           />
         </div>
 

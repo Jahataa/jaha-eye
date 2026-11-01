@@ -12,6 +12,9 @@ import { runRoutes } from "./routes/runs.js";
 import { scheduleRoutes } from "./routes/schedules.js";
 import { settingsRoutes } from "./routes/settings.js";
 import { graphifyRoutes } from "./routes/graphify.js";
+import { officeRoutes } from "./routes/office.js";
+import { isOfficeEnabled } from "./lib/office-config.js";
+import { registerOfficeHooks } from "./office/register-office.js";
 
 const apiToken = process.env.API_TOKEN?.trim();
 if (!apiToken) {
@@ -58,6 +61,11 @@ await app.register(runRoutes);
 await app.register(scheduleRoutes);
 await app.register(settingsRoutes);
 await app.register(graphifyRoutes);
+
+if (isOfficeEnabled()) {
+  registerOfficeHooks();
+  await app.register(officeRoutes);
+}
 
 app.get("/health", async () => ({ ok: true }));
 

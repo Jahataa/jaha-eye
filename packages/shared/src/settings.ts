@@ -24,6 +24,7 @@ export const LlmSettingsSchema = z.object({
   baseUrlSource: BaseUrlSourceSchema,
   defaultModelName: z.string(),
   defaultTemperature: z.number().min(0).max(2),
+  usageBudgetTokens: z.number().int().positive().nullable().optional(),
 });
 
 export type LlmSettings = z.infer<typeof LlmSettingsSchema>;
@@ -32,6 +33,7 @@ export const UpdateLlmSettingsSchema = z.object({
   baseUrl: optionalModelBaseUrl,
   defaultModelName: z.string().min(1).optional(),
   defaultTemperature: z.number().min(0).max(2).optional(),
+  usageBudgetTokens: z.number().int().positive().nullable().optional(),
 });
 
 export type UpdateLlmSettingsInput = z.infer<typeof UpdateLlmSettingsSchema>;

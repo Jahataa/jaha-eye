@@ -13,7 +13,9 @@
 
 ## In scope (Phase 1)
 
-- Agent CRUD (create, edit, enable/disable, delete)
+- Agent CRUD (create, edit, enable/disable, delete); optional `department`, `brief`, `isDepartmentLead` for Office
+- Office operator layer (`/office`) — task bar/router, approvals, skills, routines, brain graph, calendar week view, usage gauge; hooks in `run-service`; kill switch `OFFICE_ENABLED=0`
+- Office 3D floor — desks from agents, live run states + approval waiting (amber)
 - Orchestration CRUD (saved agent DAGs, canvas editor, run)
 - Manual run start/stop (single agent and orchestration parent + children)
 - Parent/child run graph UI (live canvas, tree, per-node timelines)

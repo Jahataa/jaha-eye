@@ -21,6 +21,7 @@
 | `components/events/` | `EventTimeline` with vertical trace, cyan nodes, live scan row; tool results shown inline |
 | `features/docs/` | `DocsPage`, `DocsDrawer`, `DocHelp` (? buttons on feature screens), `MarkdownView`, build-time registry from `docs/**/*.md` |
 | `features/graphify/` | `GraphifyPage` — status cards, Mermaid pipeline + ER diagrams, rebuild log; `GET/POST /api/graphify/*` |
+| `features/office/` | `OfficePage`, lazy `OfficeScene`, `Desk`, `DeskPanel`; pure layout/state helpers (`office-layout`, `desk-state`, `office-colors`) |
 
 ## Schedule ticker
 

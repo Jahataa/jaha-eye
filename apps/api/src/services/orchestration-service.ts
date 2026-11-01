@@ -12,6 +12,7 @@ import {
 } from "@jaha-eye/shared";
 import { mapAgent, mapEvent } from "../lib/mappers.js";
 import { eventBus } from "./event-bus.js";
+import { emitRunSettled, setRunContext, type RunExecutionContext } from "./run-hooks.js";
 import { assertAgentConcurrentRunCapacity, executeRun, persistRunEvent } from "./run-service.js";
 
 interface OrchestrationContext {
@@ -58,6 +59,11 @@ async function getChildReply(childRunId: string): Promise<string | null> {
   return extractAssistantReply(events.map(mapEvent));
 }
 
+type ExecuteNodeOptions = {
+  continueOnNodeError?: boolean;
+  officeRunContext?: RunExecutionContext;
+};
+
 async function executeNode(
   parentRunId: string,
   orchestrationId: string,
@@ -66,6 +72,7 @@ async function executeNode(
   originalMessage: string,
   nodeOutputs: Map<string, string>,
   variables: Map<string, string>,
+  options?: ExecuteNodeOptions,
 ): Promise<{ nodeId: string; output: string }> {
   if (isCancelled(parentRunId)) {
     throw new OrchestrationCancelledError();
@@ -123,6 +130,10 @@ async function executeNode(
     },
   });
 
+  if (options?.officeRunContext) {
+    setRunContext(childRun.id, options.officeRunContext);
+  }
+
   const definition = mapAgent(agent);
   definition.systemPrompt = resolveNodeSystemPrompt(node, definition.systemPrompt);
 
@@ -144,6 +155,13 @@ async function executeNode(
       agentId: node.agentId,
       message: errorMessage,
     });
+    if (options?.continueOnNodeError) {
+      const placeholder = `[Piece failed: ${errorMessage}]`;
+      if (node.outputVariable) {
+        variables.set(node.outputVariable, placeholder);
+      }
+      return { nodeId, output: placeholder };
+    }
     throw new Error(errorMessage);
   }
 
@@ -185,6 +203,7 @@ export async function executeOrchestrationRun(
   orchestrationId: string,
   message: string,
   graph: OrchestrationGraph,
+  options?: ExecuteNodeOptions,
 ): Promise<void> {
   activeOrchestrations.set(parentRunId, { cancelled: false });
 
@@ -221,6 +240,7 @@ export async function executeOrchestrationRun(
               message,
               nodeOutputs,
               variables,
+              options,
             ),
           ),
         );
@@ -286,10 +306,21 @@ export async function executeOrchestrationRun(
       },
     });
   } finally {
+    try {
+      await emitRunSettled(parentRunId);
+    } catch (error) {
+      console.error("[orchestration-service] emitRunSettled failed", error);
+    }
     activeOrchestrations.delete(parentRunId);
     eventBus.close(parentRunId);
   }
 }
+
+export type StartOrchestrationRunOptions = {
+  beforeExecute?: (runId: string) => Promise<void>;
+  continueOnNodeError?: boolean;
+  officeRunContext?: RunExecutionContext;
+};
 
 export async function validateOrchestrationAgents(graph: OrchestrationGraph): Promise<void> {
   assertDag(graph);
@@ -315,6 +346,7 @@ export async function startOrchestrationRun(
   orchestrationId: string,
   input: string,
   trigger: RunTrigger = "manual",
+  options?: StartOrchestrationRunOptions,
 ): Promise<string> {
   const orchestration = await prisma.orchestration.findUniqueOrThrow({
     where: { id: orchestrationId },
@@ -339,7 +371,14 @@ export async function startOrchestrationRun(
     },
   });
 
-  void executeOrchestrationRun(parentRun.id, orchestrationId, input, graph);
+  if (options?.beforeExecute) {
+    await options.beforeExecute(parentRun.id);
+  }
+
+  void executeOrchestrationRun(parentRun.id, orchestrationId, input, graph, {
+    continueOnNodeError: options?.continueOnNodeError,
+    officeRunContext: options?.officeRunContext,
+  });
   return parentRun.id;
 }
 

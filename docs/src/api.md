@@ -79,6 +79,29 @@ Orchestration parent runs emit `RUN_STARTED`, `NODE_STARTED`, `NODE_FINISHED`, `
 
 Running an orchestration returns **409** if any node agent is missing or disabled.
 
+## Office (`OFFICE_ENABLED`, default on)
+
+Mounted under `/api/office/*` when enabled. Uses `run-hooks` prompt composers and run-settled listeners; LLM router/classifier via `@jaha-eye/agent-core` `completeJson` (not Strands).
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/office/tasks` | List office tasks |
+| POST | `/api/office/tasks` | Router + create task (body: `department`, `text`, optional `team`, `agentId` pin, `at` schedule; rejects `at` &gt;60s in the past; rate limited) |
+| GET | `/api/office/tasks/:id` | Task detail |
+| POST | `/api/office/tasks/:id/approve` | Approve draft → full-tools run |
+| POST | `/api/office/tasks/:id/reject` | Reject waiting draft → revise run + classify feedback |
+| POST | `/api/office/tasks/:id/revise` | Revise with feedback + lesson classifier |
+| GET/POST/PATCH/DELETE | `/api/office/skills` | Skill CRUD |
+| GET/POST/PATCH | `/api/office/routines` | Routine CRUD |
+| POST | `/api/office/routines/:id/fire` | UI-ticked fire (`{ slot }` local minute) |
+| POST | `/api/office/tick` | Promote due scheduled tasks, late flag |
+| GET | `/api/office/lessons` | Standing/one-off lessons |
+| DELETE | `/api/office/lessons/:id` | Delete lesson |
+| GET | `/api/office/brain` | Notes + link graph |
+| GET | `/api/office/usage` | Rolling token usage + budget |
+
+List orchestrations hides `hidden: true` rows (ephemeral team graphs).
+
 ## Run execution
 
 `RunService.startRun()` (single agent):

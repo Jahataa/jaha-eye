@@ -17,3 +17,5 @@ coverage/
 
 # Graphify knowledge graph (local; rebuild with graphify extract)
 graphify-out/
+
+brain/

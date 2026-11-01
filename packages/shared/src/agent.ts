@@ -14,11 +14,25 @@ const modelBaseUrlField = z
 export const AgentStatusSchema = z.enum(["active", "disabled"]);
 export type AgentStatus = z.infer<typeof AgentStatusSchema>;
 
+export const AgentDepartmentSchema = z
+  .string()
+  .trim()
+  .max(40)
+  .optional()
+  .nullable()
+  .transform((value) => {
+    if (value == null || value === "") return null;
+    return value;
+  });
+
 export const AgentDefinitionSchema = z.object({
   id: z.string().uuid(),
   name: z.string().min(1),
   slug: z.string().min(1),
   description: z.string().nullable(),
+  department: z.string().nullable(),
+  brief: z.string().nullable(),
+  isDepartmentLead: z.boolean().default(false),
   status: AgentStatusSchema,
   modelProvider: z.string().default("openai"),
   modelName: z.string().default("gpt-4o-mini"),
@@ -40,6 +54,15 @@ export const CreateAgentSchema = z.object({
   name: z.string().min(1),
   slug: z.string().min(1).regex(/^[a-z0-9-]+$/),
   description: z.string().optional(),
+  department: AgentDepartmentSchema,
+  brief: z
+    .string()
+    .trim()
+    .max(4000)
+    .optional()
+    .nullable()
+    .transform((value) => (value == null || value === "" ? null : value)),
+  isDepartmentLead: z.boolean().optional(),
   modelProvider: z.string().default("openai"),
   modelName: z.string().optional(),
   modelBaseUrl: modelBaseUrlField,

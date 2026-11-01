@@ -256,6 +256,7 @@ export const OrchestrationDefinitionSchema = z.object({
   slug: z.string().min(1),
   description: z.string().nullable(),
   status: OrchestrationStatusSchema,
+  hidden: z.boolean().default(false),
   graph: OrchestrationGraphSchema,
   defaultRunInput: z.string().nullable(),
   createdAt: z.coerce.date(),

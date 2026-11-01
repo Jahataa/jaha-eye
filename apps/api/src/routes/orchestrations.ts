@@ -26,6 +26,7 @@ function validateGraph(graph: OrchestrationGraph): string | null {
 export const orchestrationRoutes: FastifyPluginAsync = async (app) => {
   app.get("/api/orchestrations", async () => {
     const orchestrations = await prisma.orchestration.findMany({
+      where: { hidden: false },
       orderBy: { updatedAt: "desc" },
     });
     return orchestrations.map(mapOrchestration);

@@ -66,6 +66,7 @@ export async function getPublicSettings(): Promise<LlmSettings> {
     baseUrlSource,
     defaultModelName: row?.defaultModelName ?? "gpt-4o-mini",
     defaultTemperature: row?.defaultTemperature ?? 0.7,
+    usageBudgetTokens: row?.usageBudgetTokens ?? null,
   };
 }
 
@@ -75,6 +76,7 @@ export async function upsertSettings(input: UpdateLlmSettingsInput): Promise<Llm
     llmBaseUrl?: string | null;
     defaultModelName?: string;
     defaultTemperature?: number;
+    usageBudgetTokens?: number | null;
   } = {};
 
   if (input.baseUrl !== undefined) {
@@ -85,6 +87,9 @@ export async function upsertSettings(input: UpdateLlmSettingsInput): Promise<Llm
   }
   if (input.defaultTemperature !== undefined) {
     data.defaultTemperature = input.defaultTemperature;
+  }
+  if (input.usageBudgetTokens !== undefined) {
+    data.usageBudgetTokens = input.usageBudgetTokens;
   }
 
   if (existing) {

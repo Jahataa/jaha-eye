@@ -7,7 +7,9 @@ Vite + React + TypeScript SPA.
 | Path | Purpose |
 |------|---------|
 | `src/app/router.tsx` | React Router routes |
-| `src/features/` | Feature modules (agents, runs, dashboard) |
+| `src/features/` | Feature modules (agents, runs, dashboard, office) |
+| `src/features/office/` | Office console: task bar/board, calendar, brain (React Flow), 3D floor (lazy `OfficeScene`) |
+| `src/stores/office-store.ts` | Office desk selection + WebGL availability |
 | `src/hooks/use-run-stream.ts` | SSE consumer |
 | `src/stores/ui-store.ts` | Zustand UI state |
 | `src/lib/api.ts` | Fetch wrapper |

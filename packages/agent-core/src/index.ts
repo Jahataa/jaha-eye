@@ -7,3 +7,4 @@ export {
   type NormalizedEvent,
 } from "./events/normalizer.js";
 export { getBuiltinToolCatalog, resolveTools } from "./tools/registry.js";
+export { completeJson, type CompleteJsonConfig } from "./llm/complete-json.js";

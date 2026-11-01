@@ -2,6 +2,19 @@
 
 Short record of architectural decisions. Append new entries at the top.
 
+## 2026-11-01 — Office operator layer (additive, Phase 1)
+
+| Decision | Why |
+|----------|-----|
+| `run-hooks.ts` composers + settled listeners | Extend runs without changing core `executeRun` behavior when hooks empty or `OFFICE_ENABLED=0` |
+| Office tasks separate from `AgentRun` | Preserve existing run detail/history; link via `OfficeTaskRun` |
+| Router/classifier via `completeJson` in agent-core | No `new Agent()` in API; OpenAI-compatible HTTP with URL policy |
+| Draft mode = prompt rules + `safe` tool filter | Real enforcement for approvals, not prompt-only |
+| Team runs → hidden orchestration + existing DAG executor | Free parent/child canvas; list API filters `hidden` |
+| Routines + scheduled tasks UI-ticked | Same Phase 1 constraint as `/schedules` |
+| Brain graph separate from Graphify | Operator deliverables vs code knowledge graph |
+| `RunUsage` with estimate fallback | Strands may not expose token metrics |
+
 ## 2026-10-04 — UI-ticked local cron schedules
 
 | Decision | Why |

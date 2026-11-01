@@ -28,6 +28,13 @@ Mutations invalidate relevant queries after create/update/delete/run.
 
 Do not put server data in Zustand.
 
+`apps/web/src/stores/office-store.ts`:
+
+- `selectedAgentId` — desk selected on `/office`
+- `webglAvailable` — set from the Three.js canvas; when false, the page shows the desk list fallback
+
+On `/office`, the runs list uses adaptive polling (3s vs 15s) based on active run statuses.
+
 Orchestration canvas editor keeps graph node/edge selection in local React state on the editor page.
 
 ## SSE (live execution)

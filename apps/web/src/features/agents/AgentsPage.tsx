@@ -46,6 +46,11 @@ export function AgentsPage() {
                     {agent.name}
                   </Link>
                   <Badge status={agent.status} />
+                  {agent.department && (
+                    <span className="hud-mono rounded border border-border px-1.5 py-0.5 text-[10px] uppercase tracking-wider text-muted">
+                      {agent.department}
+                    </span>
+                  )}
                 </div>
                 <p className="text-sm text-muted">{agent.description ?? agent.slug}</p>
               </div>

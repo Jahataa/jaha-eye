@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { BookOpen } from "lucide-react";
 import { api } from "../../lib/api";
 import { ScheduleTicker } from "../../features/schedules/ScheduleTicker";
+import { OfficeRoutineTicker } from "../../features/office/OfficeRoutineTicker";
 import { DocsDrawer } from "../../features/docs/DocsDrawer";
 import { DocsSearchDialog, useDocsSearchShortcut } from "../../features/docs/DocsSearch";
 import { useUiStore } from "../../stores/ui-store";
@@ -12,6 +13,7 @@ import { Button } from "../ui/button";
 
 const links = [
   { to: "/", label: "Dashboard" },
+  { to: "/office", label: "Office" },
   { to: "/agents", label: "Agents" },
   { to: "/orchestrations", label: "Orchestrations" },
   { to: "/schedules", label: "Schedules" },
@@ -25,6 +27,14 @@ const localTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 function HudTopBar() {
   const [clock, setClock] = useState(() => new Date().toLocaleTimeString());
   const { data: runs = [] } = useQuery({ queryKey: ["runs"], queryFn: api.getRuns });
+  const { data: officeUsage } = useQuery({
+    queryKey: ["office-usage"],
+    queryFn: api.getOfficeUsage,
+    refetchInterval: 60_000,
+    retry: false,
+  });
+  const usage5h =
+    (officeUsage?.window5h.inputTokens ?? 0) + (officeUsage?.window5h.outputTokens ?? 0);
   const activity = useUiStore((s) => s.activity);
   const setDocsSearchOpen = useUiStore((s) => s.setDocsSearchOpen);
 
@@ -43,6 +53,12 @@ function HudTopBar() {
         <span className="text-muted">
           Active runs: <span className="hud-figure text-accent">{activeCount}</span>
         </span>
+        {officeUsage && (
+          <span className="text-muted">
+            Office 5h: <span className="hud-figure text-accent">{usage5h}</span>
+            {officeUsage.window5h.estimated ? " est." : ""}
+          </span>
+        )}
       </div>
       <div className="flex min-w-0 items-center gap-3">
         {activity && (
@@ -79,6 +95,7 @@ export function AppShell() {
   return (
     <div className="flex min-h-screen flex-col">
       <ScheduleTicker />
+      <OfficeRoutineTicker />
       <HudTopBar />
       <DocsSearchDialog />
       <DocsDrawer />

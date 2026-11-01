@@ -1,5 +1,32 @@
 import { describe, expect, it } from "vitest";
-import { resolveDefaultRunInput } from "./agent.js";
+import { CreateAgentSchema, resolveDefaultRunInput, UpdateAgentSchema } from "./agent.js";
+
+describe("AgentDepartmentSchema via CreateAgentSchema", () => {
+  const base = {
+    name: "Ops",
+    slug: "ops",
+  };
+
+  it("accepts department and trims whitespace", () => {
+    const parsed = CreateAgentSchema.parse({ ...base, department: "  Research  " });
+    expect(parsed.department).toBe("Research");
+  });
+
+  it("normalizes empty string to null", () => {
+    const parsed = CreateAgentSchema.parse({ ...base, department: "   " });
+    expect(parsed.department).toBeNull();
+  });
+
+  it("rejects department longer than 40 characters", () => {
+    const result = CreateAgentSchema.safeParse({ ...base, department: "x".repeat(41) });
+    expect(result.success).toBe(false);
+  });
+
+  it("allows partial department update", () => {
+    const parsed = UpdateAgentSchema.parse({ department: "Sales" });
+    expect(parsed.department).toBe("Sales");
+  });
+});
 
 describe("resolveDefaultRunInput", () => {
   it("uses defaultRunInput when set", () => {

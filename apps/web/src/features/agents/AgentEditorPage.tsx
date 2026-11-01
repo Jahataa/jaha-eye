@@ -16,6 +16,9 @@ const BLANK_DEFAULTS = {
   name: "",
   slug: "",
   description: "",
+  department: "",
+  brief: "",
+  isDepartmentLead: false,
   modelName: "",
   modelBaseUrl: "",
   modelTemperature: "",
@@ -45,6 +48,18 @@ export function AgentEditorPage() {
     queryFn: () => api.getAgent(id!),
     enabled: !isNew,
   });
+  const { data: allAgents = [] } = useQuery({
+    queryKey: ["agents"],
+    queryFn: api.getAgents,
+  });
+  const departmentSuggestions = useMemo(() => {
+    const names = new Set<string>();
+    for (const entry of allAgents) {
+      const dept = entry.department?.trim();
+      if (dept) names.add(dept);
+    }
+    return [...names].sort((a, b) => a.localeCompare(b));
+  }, [allAgents]);
 
   const { data: tools = [] } = useQuery({ queryKey: ["tools"], queryFn: api.getTools });
   const { data: rolePresets = [] } = useQuery({
@@ -61,6 +76,9 @@ export function AgentEditorPage() {
   const [name, setName] = useState(BLANK_DEFAULTS.name);
   const [slug, setSlug] = useState(BLANK_DEFAULTS.slug);
   const [description, setDescription] = useState(BLANK_DEFAULTS.description);
+  const [department, setDepartment] = useState(BLANK_DEFAULTS.department);
+  const [brief, setBrief] = useState(BLANK_DEFAULTS.brief);
+  const [isDepartmentLead, setIsDepartmentLead] = useState(BLANK_DEFAULTS.isDepartmentLead);
   const [modelName, setModelName] = useState(BLANK_DEFAULTS.modelName);
   const [modelBaseUrl, setModelBaseUrl] = useState(BLANK_DEFAULTS.modelBaseUrl);
   const [modelTemperature, setModelTemperature] = useState(BLANK_DEFAULTS.modelTemperature);
@@ -88,6 +106,9 @@ export function AgentEditorPage() {
       setName(agent.name);
       setSlug(agent.slug);
       setDescription(agent.description ?? "");
+      setDepartment(agent.department ?? "");
+      setBrief(agent.brief ?? "");
+      setIsDepartmentLead(agent.isDepartmentLead);
       setModelName(agent.modelName);
       setModelBaseUrl(agent.modelBaseUrl ?? "");
       setModelTemperature(String(agent.modelTemperature));
@@ -142,6 +163,9 @@ export function AgentEditorPage() {
         name: name.trim(),
         slug: slug.trim(),
         description: description || undefined,
+        department: department.trim() || null,
+        brief: brief.trim() || null,
+        isDepartmentLead,
         modelProvider,
         modelName,
         modelBaseUrl: modelBaseUrl || undefined,
@@ -249,6 +273,39 @@ export function AgentEditorPage() {
           <Label>Description</Label>
           <Input value={description} onChange={(e) => setDescription(e.target.value)} />
         </div>
+        <div>
+          <Label>Department</Label>
+          <Input
+            list="agent-department-suggestions"
+            value={department}
+            onChange={(e) => setDepartment(e.target.value)}
+            placeholder="General pod when blank"
+            maxLength={40}
+          />
+          <datalist id="agent-department-suggestions">
+            {departmentSuggestions.map((dept) => (
+              <option key={dept} value={dept} />
+            ))}
+          </datalist>
+          <p className="mt-1 text-xs text-muted">Groups this agent in the Office view.</p>
+        </div>
+        <div>
+          <Label>Brief</Label>
+          <Textarea
+            value={brief}
+            onChange={(e) => setBrief(e.target.value)}
+            placeholder="Process notes injected into office runs"
+            rows={4}
+          />
+        </div>
+        <label className="flex items-center gap-2 text-sm text-muted">
+          <input
+            type="checkbox"
+            checked={isDepartmentLead}
+            onChange={(e) => setIsDepartmentLead(e.target.checked)}
+          />
+          Department lead (team routing)
+        </label>
 
         <div>
           <div className="flex items-center gap-2">

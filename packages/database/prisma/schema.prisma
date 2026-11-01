@@ -36,11 +36,43 @@ enum OrchestrationStatus {
   disabled
 }
 
+enum OfficeTaskStatus {
+  routing
+  queued
+  running
+  waiting
+  done
+  error
+  cancelled
+  scheduled
+}
+
+enum OfficeTaskRunMode {
+  normal
+  draft
+  approve
+  revise
+  team
+}
+
+enum LessonKind {
+  standing
+  oneoff
+}
+
+enum BrainNoteKind {
+  note
+  deliverable
+}
+
 model Agent {
   id                String      @id @default(uuid())
   name              String
   slug              String      @unique
   description       String?
+  department        String?     @map("department")
+  brief             String?
+  isDepartmentLead  Boolean     @default(false) @map("is_department_lead")
   status            AgentStatus @default(active)
   modelProvider     String      @default("openai") @map("model_provider")
   modelName         String      @default("gpt-4o-mini") @map("model_name")
@@ -55,9 +87,14 @@ model Agent {
   createdAt         DateTime    @default(now()) @map("created_at")
   updatedAt         DateTime    @updatedAt @map("updated_at")
 
-  runs      AgentRun[]
-  schedules Schedule[]
+  runs        AgentRun[]
+  schedules   Schedule[]
+  officeTasks OfficeTask[]
+  lessons     Lesson[]
+  routines    Routine[]
+  brainNotes  BrainNote[]
 
+  @@index([department])
   @@map("agents")
 }
 
@@ -67,6 +104,7 @@ model Orchestration {
   slug            String              @unique
   description     String?
   status          OrchestrationStatus @default(active)
+  hidden          Boolean             @default(false)
   graph           Json
   defaultRunInput String?             @map("default_run_input")
   createdAt       DateTime            @default(now()) @map("created_at")
@@ -98,7 +136,10 @@ model AgentRun {
   orchestration Orchestration? @relation(fields: [orchestrationId], references: [id], onDelete: SetNull)
   parent        AgentRun?      @relation("RunHierarchy", fields: [parentRunId], references: [id])
   children      AgentRun[]     @relation("RunHierarchy")
-  events        AgentRunEvent[]
+  events          AgentRunEvent[]
+  officeTaskRuns  OfficeTaskRun[]
+  runUsage        RunUsage?
+  brainNotes      BrainNote[]
 
   @@index([agentId])
   @@index([orchestrationId])
@@ -150,9 +191,139 @@ model AppSettings {
   llmApiKey          String?  @map("llm_api_key")
   llmBaseUrl         String?  @map("llm_base_url")
   defaultModelName   String   @default("gpt-4o-mini") @map("default_model_name")
-  defaultTemperature Float    @default(0.7) @map("default_temperature")
-  createdAt          DateTime @default(now()) @map("created_at")
-  updatedAt          DateTime @updatedAt @map("updated_at")
+  defaultTemperature  Float    @default(0.7) @map("default_temperature")
+  usageBudgetTokens   Int?     @map("usage_budget_tokens")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
 
   @@map("app_settings")
+}
+
+model OfficeTask {
+  id              String           @id @default(uuid())
+  department      String
+  agentId         String?          @map("agent_id")
+  title           String           @default("")
+  text            String
+  status          OfficeTaskStatus @default(routing)
+  needsOk         Boolean          @default(false) @map("needs_ok")
+  plan            Json             @default("[]")
+  draft           String?
+  result          String?
+  scheduledAt     DateTime?        @map("scheduled_at")
+  late            Boolean          @default(false)
+  routineId       String?          @map("routine_id")
+  teamParentRunId String?          @map("team_parent_run_id")
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+
+  agent     Agent?          @relation(fields: [agentId], references: [id], onDelete: SetNull)
+  routine   Routine?        @relation(fields: [routineId], references: [id], onDelete: SetNull)
+  taskRuns  OfficeTaskRun[]
+
+  @@index([status])
+  @@index([department])
+  @@index([agentId])
+  @@index([scheduledAt])
+  @@map("office_tasks")
+}
+
+model OfficeTaskRun {
+  id        String            @id @default(uuid())
+  taskId    String            @map("task_id")
+  runId     String            @map("run_id")
+  mode      OfficeTaskRunMode @default(normal)
+  createdAt DateTime          @default(now()) @map("created_at")
+
+  task OfficeTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  run  AgentRun   @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, runId])
+  @@index([runId])
+  @@map("office_task_runs")
+}
+
+model Skill {
+  id          String   @id @default(uuid())
+  name        String
+  slug        String   @unique
+  body        String
+  agentIds    Json     @default("[]") @map("agent_ids")
+  departments Json     @default("[]")
+  enabled     Boolean  @default(true)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("skills")
+}
+
+model Lesson {
+  id           String     @id @default(uuid())
+  agentId      String     @map("agent_id")
+  kind         LessonKind
+  text         String
+  sourceTaskId String?    @map("source_task_id")
+  createdAt    DateTime   @default(now()) @map("created_at")
+
+  agent Agent @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@index([agentId])
+  @@map("lessons")
+}
+
+model BrainNote {
+  id        String        @id @default(uuid())
+  slug      String        @unique
+  title     String
+  body      String
+  kind      BrainNoteKind @default(note)
+  agentId   String?       @map("agent_id")
+  taskId    String?       @map("task_id")
+  runId     String?       @map("run_id")
+  links     Json          @default("[]")
+  createdAt DateTime      @default(now()) @map("created_at")
+  updatedAt DateTime      @updatedAt @map("updated_at")
+
+  agent Agent?    @relation(fields: [agentId], references: [id], onDelete: SetNull)
+  run   AgentRun? @relation(fields: [runId], references: [id], onDelete: SetNull)
+
+  @@index([agentId])
+  @@map("brain_notes")
+}
+
+model Routine {
+  id            String   @id @default(uuid())
+  name          String
+  department    String
+  agentId       String   @map("agent_id")
+  text          String
+  expression    String
+  needsOk       Boolean  @default(false) @map("needs_ok")
+  team          Boolean  @default(false)
+  enabled       Boolean  @default(true)
+  lastFiredAt   DateTime? @map("last_fired_at")
+  lastFiredSlot String?  @map("last_fired_slot")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  agent Agent        @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  tasks OfficeTask[]
+
+  @@index([agentId])
+  @@index([enabled])
+  @@map("routines")
+}
+
+model RunUsage {
+  id           String   @id @default(uuid())
+  runId        String   @unique @map("run_id")
+  inputTokens  Int      @default(0) @map("input_tokens")
+  outputTokens Int      @default(0) @map("output_tokens")
+  model        String   @default("")
+  estimated    Boolean  @default(false)
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  run AgentRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@map("run_usage")
 }
