@@ -28,6 +28,29 @@ docker compose up -d
 
 Default credentials: `postgres` / `postgres` (see `.env.example`).
 
+## Graphify (optional)
+
+[Graphify](https://github.com/Graphify-Labs/graphify) builds a local knowledge graph under `graphify-out/` (gitignored). The project skill lives in `.cursor/skills/graphify/`; Cursor loads `.cursor/rules/graphify.mdc` after `graphify install --platform cursor --project`.
+
+Install the CLI once (includes Postgres introspection):
+
+```bash
+uv tool install 'graphifyy[postgres]'
+```
+
+With Postgres running (`docker compose up -d`) and `DATABASE_URL` in `.env`:
+
+```bash
+npm run graphify:extract   # AST on code + live schema (tables, FKs)
+npm run graphify:update    # after code edits (no LLM)
+graphify query "How does AgentRun persist?"
+graphify explain jaha_eye --all
+```
+
+Re-run `graphify:extract` after migrations so table nodes stay in sync. This does not replace Prisma migrations.
+
+Open **Graphify** in the sidebar (`/graphify`) for a visual status page, schema diagram, and rebuild buttons (API must have the `graphify` CLI on `PATH`). See [Knowledge graph](../ui/knowledge-graph.md).
+
 ## Later
 
 Phase 2 may add Redis, worker containers, and optional Langfuse stack. Not in current Compose file.

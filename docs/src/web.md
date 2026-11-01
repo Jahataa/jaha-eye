@@ -12,6 +12,7 @@ Vite + React + TypeScript SPA.
 | `src/stores/ui-store.ts` | Zustand UI state |
 | `src/lib/api.ts` | Fetch wrapper |
 | `src/features/docs/` | In-app documentation viewer (`import.meta.glob` on repo `docs/`) |
+| `src/features/graphify/` | Graphify operator screen — polls `/api/graphify/status`, Mermaid diagrams |
 
 ## Dev
 

@@ -20,6 +20,7 @@
 | `features/schedules/` | `ScheduleTicker` (background fire while UI open), `SchedulesPage`, `ScheduleSection` (entity editors), `ScheduleDialog`, cron presets |
 | `components/events/` | `EventTimeline` with vertical trace, cyan nodes, live scan row; tool results shown inline |
 | `features/docs/` | `DocsPage`, `DocsDrawer`, `DocHelp` (? buttons on feature screens), `MarkdownView`, build-time registry from `docs/**/*.md` |
+| `features/graphify/` | `GraphifyPage` — status cards, Mermaid pipeline + ER diagrams, rebuild log; `GET/POST /api/graphify/*` |
 
 ## Schedule ticker
 

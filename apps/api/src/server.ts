@@ -11,6 +11,7 @@ import { orchestrationRoutes } from "./routes/orchestrations.js";
 import { runRoutes } from "./routes/runs.js";
 import { scheduleRoutes } from "./routes/schedules.js";
 import { settingsRoutes } from "./routes/settings.js";
+import { graphifyRoutes } from "./routes/graphify.js";
 
 const apiToken = process.env.API_TOKEN?.trim();
 if (!apiToken) {
@@ -56,6 +57,7 @@ await app.register(orchestrationRoutes);
 await app.register(runRoutes);
 await app.register(scheduleRoutes);
 await app.register(settingsRoutes);
+await app.register(graphifyRoutes);
 
 app.get("/health", async () => ({ ok: true }));
 

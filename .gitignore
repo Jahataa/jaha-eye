@@ -14,3 +14,6 @@ coverage/
 
 # ECC Cursor installer state (machine-local; regenerated on install)
 .cursor/ecc-install-state.json
+
+# Graphify knowledge graph (local; rebuild with graphify extract)
+graphify-out/

@@ -10,6 +10,7 @@ import { OrchestrationEditorPage } from "../features/orchestrations/Orchestratio
 import { SettingsPage } from "../features/settings/SettingsPage";
 import { SchedulesPage } from "../features/schedules/SchedulesPage";
 import { DocsPage } from "../features/docs/DocsPage";
+import { GraphifyPage } from "../features/graphify/GraphifyPage";
 
 export const router = createBrowserRouter([
   {
@@ -27,6 +28,7 @@ export const router = createBrowserRouter([
       { path: "runs", element: <RunsPage /> },
       { path: "runs/:id", element: <RunDetailPage /> },
       { path: "settings", element: <SettingsPage /> },
+      { path: "graphify", element: <GraphifyPage /> },
       { path: "docs/*", element: <DocsPage /> },
     ],
   },

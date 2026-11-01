@@ -22,7 +22,9 @@
     "db:migrate": "dotenv -e .env -- npm run migrate -w @jaha-eye/database",
     "db:migrate:deploy": "dotenv -e .env -- npm run migrate:deploy -w @jaha-eye/database",
     "db:push": "dotenv -e .env -- npm run push -w @jaha-eye/database",
-    "db:seed": "dotenv -e .env -- npm run seed -w @jaha-eye/database"
+    "db:seed": "dotenv -e .env -- npm run seed -w @jaha-eye/database",
+    "graphify:extract": "dotenv -e .env -- sh -c 'graphify extract . --code-only --postgres \"$DATABASE_URL\" --no-cluster'",
+    "graphify:update": "graphify update ."
   },
   "devDependencies": {
     "dotenv-cli": "^8.0.0",

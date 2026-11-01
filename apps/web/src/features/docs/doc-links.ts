@@ -55,6 +55,10 @@ export const FEATURE_DOC_LINKS = {
     slug: "conf/environment",
     label: "Environment variables",
   },
+  graphify: {
+    slug: "ui/knowledge-graph",
+    label: "Knowledge graph (Graphify)",
+  },
 } as const satisfies Record<string, DocTarget>;
 
 export type FeatureDocKey = keyof typeof FEATURE_DOC_LINKS;

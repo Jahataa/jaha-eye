@@ -16,6 +16,7 @@ const links = [
   { to: "/orchestrations", label: "Orchestrations" },
   { to: "/schedules", label: "Schedules" },
   { to: "/runs", label: "Runs" },
+  { to: "/graphify", label: "Graphify" },
   { to: "/settings", label: "Settings" },
 ];
 

@@ -16,6 +16,8 @@ import type {
   RolePreset,
   Schedule,
   TestLlmSettingsInput,
+  GraphifyRebuildRequest,
+  GraphifyStatus,
   UpdateAgentInput,
   UpdateLlmSettingsInput,
   UpdateOrchestrationInput,
@@ -105,6 +107,12 @@ export const api = {
     request<Schedule>(`/api/schedules/${id}/enable`, { method: "POST" }),
   disableSchedule: (id: string) =>
     request<Schedule>(`/api/schedules/${id}/disable`, { method: "POST" }),
+  getGraphifyStatus: () => request<GraphifyStatus>("/api/graphify/status"),
+  rebuildGraphify: (data: GraphifyRebuildRequest) =>
+    request<{ started: true }>("/api/graphify/rebuild", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
   fireSchedule: async (
     id: string,
     slot: LocalMinuteSlot,

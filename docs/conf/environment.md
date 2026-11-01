@@ -17,6 +17,7 @@ Copy `.env.example` to `.env` at the repo root. Prisma commands (`npm run db:mig
 | `SEARXNG_URL` | No* | — | Base URL of the local SearXNG instance for the `web_search` tool (default in `.env.example`: `http://127.0.0.1:8888`) |
 | `SEARXNG_SECRET` | No | `change-me-local-searxng-secret` | Secret key for the SearXNG container (`docker-compose.tools.yml`) |
 | `NODE_ENV` | No | — | `development` enables Prisma warning logs; `production` disables the dev Prisma client cache |
+| `GRAPHIFY_UI` | No | *(enabled)* | Set to `0` to disable Graphify rebuild actions on the API (`/api/graphify/rebuild`). Status reads still work if `graphify-out/graph.json` exists. |
 
 \*Required for model runs. Set in `.env` only — the API does not store keys in Postgres.
 
